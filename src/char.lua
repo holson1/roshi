@@ -26,7 +26,7 @@ function init_char()
         get_animation=function(self)
             return self.animations[self.state]
         end,
-
+        collide=collide,
         update=update_char,
 
         -- all game logic should be implemented in cells, only draw functions care about px
@@ -35,6 +35,37 @@ function init_char()
         end
     }
     return char
+end
+
+function collide_exit_door(y, x)
+    if (count(hud.items, key.item) > 0) then
+        hlog('*click*')
+        map[y][x] = exit
+        del(hud.items, key.item)
+    else
+        hlog('i need a key!')
+    end
+end
+
+function collide_fake_wall(y, x)
+    map[y][x] = coin
+    hlog('the fake wall crumbles away...')
+end
+
+function collide_chest(y, x)
+    -- todo: chest rolls
+    map[y][x] = hyper_specs
+end
+
+function collide(_char, space, y, x)
+    local actions = {
+        exit_door=collide_exit_door,
+        fake_wall=collide_fake_wall,
+        chest=collide_chest,
+    }
+    if (actions[space.id]) then
+        actions[space.id](y, x)
+    end
 end
 
 function update_char(_char)
@@ -77,28 +108,44 @@ function handle_input(_char)
     end
 
     if (btnp(0)) then
-        if ((_char.x - 1) > 0 and map[_char.y][_char.x - 1].flag ~= 1) then
-            _char.x -= 1
+        if ((_char.x - 1) > 0) then
+            if (map[_char.y][_char.x - 1].flag ~= 1) then
+                _char.x -= 1
+            else
+                _char:collide(map[_char.y][_char.x - 1], _char.y,  _char.x - 1)
+            end
         end
         _char.flip = true
     end
 
     if (btnp(1)) then
-        if ((_char.x + 1) < MAP_SIZE+1 and map[_char.y][_char.x + 1].flag ~= 1) then
-            _char.x += 1
+        if ((_char.x + 1) < MAP_SIZE+1) then
+            if (map[_char.y][_char.x + 1].flag ~= 1) then
+                _char.x += 1
+            else
+                _char:collide(map[_char.y][_char.x + 1], _char.y,  _char.x + 1)
+            end
         end
         _char.flip = false
     end
 
     if (btnp(2)) then
-        if ((_char.y - 1) > 0 and map[_char.y - 1][_char.x].flag ~= 1) then
-            _char.y -= 1
+        if ((_char.y - 1) > 0) then
+            if (map[_char.y - 1][_char.x].flag ~= 1) then
+                _char.y -= 1
+            else
+                _char:collide(map[_char.y - 1][_char.x], _char.y - 1,  _char.x)
+            end
         end
     end
 
     if (btnp(3)) then
-        if ((_char.y + 1) < MAP_SIZE+1 and map[_char.y + 1][_char.x].flag ~= 1) then
-            _char.y += 1
+        if ((_char.y + 1) < MAP_SIZE+1) then
+            if (map[_char.y + 1][_char.x].flag ~= 1) then
+                _char.y += 1
+            else
+                _char:collide(map[_char.y + 1][_char.x], _char.y + 1,  _char.x)
+            end
         end
     end
 end
@@ -114,7 +161,22 @@ function set_spr(_char)
 end
 
 function check_space(_char)
-    if (map[_char.y][_char.x].flag == 7) then
+    local space = map[_char.y][_char.x]
+
+    -- exit
+    if (space.flag == 7) then
         map = generate_map()
+    end
+
+    -- objects (carryable)
+    if (space.flag == 2) then
+        hud:pickup_item(space.item)
+        map[_char.y][_char.x] = floor
+    end
+
+    -- coins
+    if (space.flag == 3) then
+        hud.coins += space.value
+        map[_char.y][_char.x] = floor
     end
 end

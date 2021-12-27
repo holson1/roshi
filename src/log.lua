@@ -4,6 +4,10 @@ for i=1,log_l do
     add(_log,'')
 end
 
+function hlog(str)
+    hud:set_msg(str, '')
+end
+
 function log(str)
     add(_log,str)
 end

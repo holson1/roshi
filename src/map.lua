@@ -1,33 +1,95 @@
 MAP_SIZE=24 -- map size in tiles
+VISION_RADIUS=5
 
+floor = {
+    id='floor',
+    spr=018,
+    flag=0
+}
+
+start = {
+    id='start',
+    spr=103,
+    flag=0
+}
+
+-- collidables
 empty = {
     spr=017,
     flag=1
 }
 
 wall = {
+    id='wall',
     spr=020,
     flag=1
 }
 
-floor = {
-    spr=018,
-    flag=0
+fake_wall = {
+    id='fake_wall',
+    spr=017,
+    flag=1
 }
 
-start = {
-    spr=103,
-    flag=0
+chest = {
+    id='chest',
+    spr=024,
+    flag=1
+}
+
+exit_door = {
+    id='exit_door',
+    spr=096,
+    flag=1
 }
 
 exit = {
+    id='exit',
     spr=102,
     flag=7
 }
 
+-- pickup items (flag 2)
 key = {
+    id='key',
     spr=80,
-    flag=0
+    flag=2,
+    -- todo: move this to its own constants file and just reference here
+    item={
+        spr=80,
+        name='key',
+        desc='best used for unlocking'
+    }
+}
+
+hyper_specs = {
+    id='hs',
+    spr=035,
+    flag=2,
+    item={
+        spr=035,
+        name='hyper specs',
+        desc='see fake walls',
+        use = function ()
+            hlog('you peer into the void.')
+            fake_wall.spr = 023
+        end
+    }
+}
+
+-- coins (flag 3)
+coin = {
+    id='coin',
+    spr=050,
+    flag=3,
+    value=1
+}
+
+red_coin = {
+    id='red_coin',
+    spr=051,
+    flag=3,
+    value=5
 }
 
 function draw_path_between_coords(_map, start, dest)
@@ -99,7 +161,11 @@ function generate_map()
     for i=0,MAP_SIZE do
         add(_map, {})
         for j=0,MAP_SIZE do
-            add(_map[i], empty)
+            if (rnd() > 0.97) then
+                add(_map[i], fake_wall)
+            else
+                add(_map[i], empty)
+            end
         end
     end
 
@@ -118,6 +184,7 @@ function generate_map()
     local y = 1
     local x = 2
 
+
     char.x = start_c[x]
     char.y = start_c[y]
 
@@ -132,16 +199,28 @@ function generate_map()
     draw_room(_map, room1_c)
 
     _map[start_c[y]][start_c[x]] = start
-    _map[exit_c[y]][exit_c[x]] = exit
+    _map[exit_c[y]][exit_c[x]] = exit_door
     _map[key_c[y]][key_c[x]] = key
+    -- todo: add proper chest generation
+    _map[room1_c[y]][room1_c[x]] = chest
 
     return _map
 end
 
 function draw_map(_map)
-    for i,row in ipairs(_map) do
-        for j,cell in ipairs(row) do
-            spr(cell.spr, j*8, i*8)
+    -- for i,row in ipairs(_map) do
+    --     for j,cell in ipairs(row) do
+    --         spr(cell.spr, j*8, i*8)
+    --     end
+    -- end
+    for i=max(1, char.x-VISION_RADIUS), min(char.x+VISION_RADIUS, MAP_SIZE) do
+        for j=max(1, char.y-VISION_RADIUS), min(char.y+VISION_RADIUS, MAP_SIZE) do
+            spr(_map[j][i].spr, i*8, j*8)
         end
+    end
+
+    -- todo: get rid of this
+    if (t % 16 == 0) then
+        fake_wall.spr = 017
     end
 end
