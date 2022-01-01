@@ -7,6 +7,7 @@ function _init()
     cam.x = 0
     cam.y = 0
     msg=''
+    level=1
    
     -- thanks doc_robs!
     dust={}
@@ -15,6 +16,7 @@ function _init()
     booms=new_group(boom)
  
     char=init_char()
+    levels=roll_levels()
     map=generate_map()
     hud=init_hud()
 end

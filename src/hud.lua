@@ -39,6 +39,7 @@ function init_hud()
 
         pickup_item = function(self, item)
             add(self.items, item)
+            sfx(item.sfx)
             self:set_msg('got: `' .. item.name .. '`', item.desc)
         end,
 
@@ -48,6 +49,7 @@ function init_hud()
             end
 
             if (btnp(4)) then
+                sfx(self.items[self.selected_item].sfx) 
                 self.items[self.selected_item].use()
             end
 
@@ -101,6 +103,9 @@ function init_hud()
             else
                 print('0' .. self.coins,x,y+120,10)
             end
+
+            -- level
+            print('l' .. level, x+116, y, 10)
         end
     }
     return hud

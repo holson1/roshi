@@ -37,24 +37,23 @@ function init_char()
     return char
 end
 
-function collide_exit_door(y, x)
-    if (count(hud.items, key.item) > 0) then
+function collide_exit_door(y, x, space)
+    if (count(hud.items, key) > 0) then
         hlog('*click*')
         map[y][x] = exit
-        del(hud.items, key.item)
+        del(hud.items, key)
     else
         hlog('i need a key!')
     end
 end
 
-function collide_fake_wall(y, x)
-    map[y][x] = coin
+function collide_fake_wall(y, x, space)
+    place_coin(map, y, x, coin)
     hlog('the fake wall crumbles away...')
 end
 
-function collide_chest(y, x)
-    -- todo: chest rolls
-    map[y][x] = hyper_specs
+function collide_chest(y, x, chest)
+    place_item(map, y, x, chest.item)
 end
 
 function collide(_char, space, y, x)
@@ -64,7 +63,7 @@ function collide(_char, space, y, x)
         chest=collide_chest,
     }
     if (actions[space.id]) then
-        actions[space.id](y, x)
+        actions[space.id](y, x, space)
     end
 end
 
@@ -165,6 +164,7 @@ function check_space(_char)
 
     -- exit
     if (space.flag == 7) then
+        level += 1
         map = generate_map()
     end
 
