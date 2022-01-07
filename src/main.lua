@@ -12,9 +12,13 @@ function _init()
     -- thanks doc_robs!
     dust={}
        
-    shots=new_group(shot)
-    booms=new_group(boom)
- 
+    -- shots=new_group(shot)
+    -- booms=new_group(boom)
+
+    goombas=new_group(goomba)
+
+    goombas:new({x=64, y=64})
+
     char=init_char()
     levels=roll_levels()
     map=generate_map()
@@ -27,8 +31,12 @@ function _update()
     char:update()
     hud:update()
 
-    shots:update()
-    booms:update()
+    -- shots:update()
+    -- booms:update()
+
+    if ((t%16)==0) then
+        goombas:update()
+    end
    
     for d in all(dust) do
         d:update()
@@ -47,6 +55,8 @@ function _draw()
     char:draw()
 
     hud:draw()
+
+    goombas:draw()
    
     -- for d in all(dust) do
     --     d:draw()

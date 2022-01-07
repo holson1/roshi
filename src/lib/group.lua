@@ -4,12 +4,12 @@ function new_group(bp)
         bp=bp,
         
         new=function(self,p)
-        for k,v in pairs(bp) do
-            if v!=nil then
-                p[k]=v
+            for k,v in pairs(bp) do
+                if v!=nil then
+                    p[k]=v
+                end
             end
-        end
-        p.alive=true
+            p.alive=true
             add(self._,p)
         end,
            
@@ -25,7 +25,7 @@ function new_group(bp)
         -- todo: change to sspr
         draw=function(self)
             for v in all(self._) do
-                spr(v.s,v.x,v.y,ceil(v.w/8),ceil(v.h/8),v.d)
+                spr(v.s,v.x,v.y)
             end
         end
     }
