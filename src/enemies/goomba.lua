@@ -19,7 +19,6 @@ goomba={
         
         self.s = anim[transformed_spri]
 
-
         -- goombas move in random directions
         local x = ceil(self.x / 8)
         local y = ceil(self.y / 8)

@@ -48,11 +48,18 @@ function init_hud()
                 self.spri = (self.spri + 1) % 2
             end
 
+            -- use
             if (btnp(4)) then
                 sfx(self.items[self.selected_item].sfx) 
                 self.items[self.selected_item].use()
+
+                -- catch error w/ using last item
+                if (self.selected_item > #self.items) then
+                    self.selected_item = #self.items
+                end
             end
 
+            -- rotate
             if (btnp(5)) then
                 self.selected_item = (self.selected_item + 1) % #self.items
                 if (self.selected_item == 0) then
@@ -68,15 +75,10 @@ function init_hud()
             local y = cam.y*8
 
             -- items
-            rectfill(x,y,x+7,y+128,0)
-            rect(x,y,x+7,y+63,7)
-            rectfill(x,y+2,x+7,y+61,0)
-
-
             for i=1,#self.items do
-                spr(self.items[i].spr,x,y+(i*8))
+                spr(self.items[i].spr,x,y+(i*8)-8)
                 if (i == self.selected_item) then
-                    spr(016 + self.spri,x,y+(i*8))
+                    spr(016 + self.spri,x,y+(i*8)-8)
                 end
             end
 
