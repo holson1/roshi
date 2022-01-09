@@ -17,8 +17,6 @@ function _init()
 
     goombas=new_group(goomba)
 
-    goombas:new({x=64, y=64})
-
     char=init_char()
     levels=roll_levels()
     map=generate_map()

@@ -22,10 +22,9 @@ function new_group(bp)
             end
         end,
         
-        -- todo: change to sspr
         draw=function(self)
             for v in all(self._) do
-                spr(v.s,v.x,v.y)
+                spr(v.s,v.x*8,v.y*8)
             end
         end
     }

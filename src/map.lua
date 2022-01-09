@@ -77,6 +77,14 @@ function place_chest()
     }
 end
 
+function place_enemies(rooms)
+    -- this will really depend on level but _FOR NOW_ let's do the easy thing and gen a default number
+
+    for room in all(rooms) do
+        goombas:new({x=room[2],y=room[1]})
+    end
+end
+
 function draw_path_between_coords(_map, start, dest)
     local x = 2
     local y = 1
@@ -182,12 +190,16 @@ function generate_map()
     -- todo: randomize which points get rooms
     draw_room(_map, exit_c)
     draw_room(_map, room1_c)
+    draw_room(_map, room2_c)
 
     _map[start_c[y]][start_c[x]] = start
     _map[exit_c[y]][exit_c[x]] = exit_door
     place_item(_map, key_c[y], key_c[x], key)
     -- todo: add proper chest generation
     _map[room1_c[y]][room1_c[x]] = place_chest()
+
+    -- place enemies
+    place_enemies({room1_c, room2_c})
 
     return _map
 end

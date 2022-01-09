@@ -200,8 +200,6 @@ function _init()
 
     goombas=new_group(goomba)
 
-    goombas:new({x=64, y=64})
-
     char=init_char()
     levels=roll_levels()
     map=generate_map()
@@ -328,6 +326,14 @@ function place_chest()
     }
 end
 
+function place_enemies(rooms)
+    -- this will really depend on level but _FOR NOW_ let's do the easy thing and gen a default number
+
+    for room in all(rooms) do
+        goombas:new({x=room[2],y=room[1]})
+    end
+end
+
 function draw_path_between_coords(_map, start, dest)
     local x = 2
     local y = 1
@@ -433,12 +439,16 @@ function generate_map()
     -- todo: randomize which points get rooms
     draw_room(_map, exit_c)
     draw_room(_map, room1_c)
+    draw_room(_map, room2_c)
 
     _map[start_c[y]][start_c[x]] = start
     _map[exit_c[y]][exit_c[x]] = exit_door
     place_item(_map, key_c[y], key_c[x], key)
     -- todo: add proper chest generation
     _map[room1_c[y]][room1_c[x]] = place_chest()
+
+    -- place enemies
+    place_enemies({room1_c, room2_c})
 
     return _map
 end
@@ -524,10 +534,9 @@ function new_group(bp)
             end
         end,
         
-        -- todo: change to sspr
         draw=function(self)
             for v in all(self._) do
-                spr(v.s,v.x,v.y)
+                spr(v.s,v.x*8,v.y*8)
             end
         end
     }
@@ -791,26 +800,24 @@ goomba={
         self.s = anim[transformed_spri]
 
         -- goombas move in random directions
-        local x = ceil(self.x / 8)
-        local y = ceil(self.y / 8)
         local new_cell = nil
         local dirs = {0,0.25,0.5,0.75}
         while new_cell == nil do
             local dir = rnd(dirs)
-            local new_x = x + cos(dir)
-            local new_y = y + sin(dir)
+            local new_x = self.x + cos(dir)
+            local new_y = self.y + sin(dir)
             if (map[new_y][new_x].flag == 0) then
                 new_cell = {new_y, new_x}
             else
                 del(dirs, dir)
                 if (#dirs == 0) then
-                    new_cell = {y, x}
+                    new_cell = {self.y, self.x}
                 end
             end
         end
 
-        self.y = new_cell[1] * 8
-        self.x = new_cell[2] * 8
+        self.y = new_cell[1]
+        self.x = new_cell[2]
     end
 }
 -->8
