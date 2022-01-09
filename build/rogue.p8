@@ -562,6 +562,10 @@ end
 function coord_match(a,b)
     return a[1] == b[1] and a[2] == b[2]
 end
+
+function in_bounds(a,b)
+    return a > 0 and a < MAP_SIZE + 1 and b > 0 and b < MAP_SIZE + 1
+end
 -->8
 --src/log.lua
 _log={}
@@ -674,9 +678,7 @@ function update_char(_char)
     end
 
     check_space(_char)
-
     handle_input(_char)
-    update_position(_char)
 
     if (_char.idle_counter > 128) then
         _char.state = 'idle'
@@ -702,50 +704,51 @@ function handle_input(_char)
         hud:clear_msg()
     end
 
+    local _x
+    local _y
+
     if (btnp(0)) then
-        if ((_char.x - 1) > 0) then
-            if (map[_char.y][_char.x - 1].flag ~= 1) then
-                _char.x -= 1
-            else
-                _char:collide(map[_char.y][_char.x - 1], _char.y,  _char.x - 1)
-            end
-        end
+        _x = _char.x - 1
+        _y = _char.y
+
+        update_position(_char, _y, _x)
         _char.flip = true
     end
 
     if (btnp(1)) then
-        if ((_char.x + 1) < MAP_SIZE+1) then
-            if (map[_char.y][_char.x + 1].flag ~= 1) then
-                _char.x += 1
-            else
-                _char:collide(map[_char.y][_char.x + 1], _char.y,  _char.x + 1)
-            end
-        end
+        _x = _char.x + 1
+        _y = _char.y
+
+        update_position(_char, _y, _x)
         _char.flip = false
     end
 
     if (btnp(2)) then
-        if ((_char.y - 1) > 0) then
-            if (map[_char.y - 1][_char.x].flag ~= 1) then
-                _char.y -= 1
-            else
-                _char:collide(map[_char.y - 1][_char.x], _char.y - 1,  _char.x)
-            end
-        end
+        _x = _char.x
+        _y = _char.y - 1
+
+        update_position(_char, _y, _x)
     end
 
     if (btnp(3)) then
-        if ((_char.y + 1) < MAP_SIZE+1) then
-            if (map[_char.y + 1][_char.x].flag ~= 1) then
-                _char.y += 1
-            else
-                _char:collide(map[_char.y + 1][_char.x], _char.y + 1,  _char.x)
-            end
-        end
+        _x = _char.x
+        _y = _char.y + 1
+
+        update_position(_char, _y, _x)
     end
+
 end
   
-function update_position(_char)
+function update_position(_char, _y, _x)
+    hud:set_msg(_x, _y)
+    if (in_bounds(_y, _x)) then
+        if (map[_y][_x].flag ~= 1) then
+            _char.x = _x
+            _char.y = _y
+        else
+            _char:collide(map[_y][_x], _y, _x)
+        end
+    end
 end
 
 function set_spr(_char)
@@ -806,7 +809,8 @@ goomba={
             local dir = rnd(dirs)
             local new_x = self.x + cos(dir)
             local new_y = self.y + sin(dir)
-            if (map[new_y][new_x].flag == 0) then
+
+            if (in_bounds(new_y, new_x) and map[new_y][new_x].flag == 0) then
                 new_cell = {new_y, new_x}
             else
                 del(dirs, dir)

@@ -26,7 +26,8 @@ goomba={
             local dir = rnd(dirs)
             local new_x = self.x + cos(dir)
             local new_y = self.y + sin(dir)
-            if (map[new_y][new_x].flag == 0) then
+
+            if (in_bounds(new_y, new_x) and map[new_y][new_x].flag == 0) then
                 new_cell = {new_y, new_x}
             else
                 del(dirs, dir)
