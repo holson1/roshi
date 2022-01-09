@@ -140,7 +140,6 @@ function handle_input(_char)
 end
   
 function update_position(_char, _y, _x)
-    hud:set_msg(_x, _y)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
             _char.x = _x

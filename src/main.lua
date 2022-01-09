@@ -16,6 +16,7 @@ function _init()
     -- booms=new_group(boom)
 
     goombas=new_group(goomba)
+    evil_goombas = new_group(evil_goomba)
 
     char=init_char()
     levels=roll_levels()
@@ -34,6 +35,7 @@ function _update()
 
     if ((t%16)==0) then
         goombas:update()
+        evil_goombas:update()
     end
    
     for d in all(dust) do
@@ -55,6 +57,7 @@ function _draw()
     hud:draw()
 
     goombas:draw()
+    evil_goombas:draw()
    
     -- for d in all(dust) do
     --     d:draw()
