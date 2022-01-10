@@ -205,18 +205,17 @@ function _init()
     levels=roll_levels()
     map=generate_map()
     hud=init_hud()
+    state='p_turn'
 end
    
 function _update()
+    pal()
     t=(t+1)%128
- 
-    char:update()
-    hud:update()
 
-    -- shots:update()
-    -- booms:update()
-
-    if ((t%16)==0) then
+    if (state == 'p_turn') then
+        char:update()
+    elseif (state == 'e_turn') then
+        state = 'p_turn'
         goombas:update()
         evil_goombas:update()
     end
@@ -225,6 +224,7 @@ function _update()
         d:update()
     end
 
+    hud:update()
     cam.x = max(char.x - 8, 0)
     cam.y = max(char.y - 8, 0)
 end
@@ -242,9 +242,9 @@ function _draw()
     goombas:draw()
     evil_goombas:draw()
    
-    -- for d in all(dust) do
-    --     d:draw()
-    -- end
+    for d in all(dust) do
+        d:draw()
+    end
        
     -- debug()
 end
@@ -333,11 +333,7 @@ function place_enemies(rooms)
     -- this will really depend on level but _FOR NOW_ let's do the easy thing and gen a default number
 
     for room in all(rooms) do
-        if (rnd() > 0.5) then
-            evil_goombas:new({x=room[2],y=room[1]})
-        else
-            goombas:new({x=room[2],y=room[1]})
-        end
+        goombas:new({x=room[2],y=room[1]})
     end
 end
 
@@ -709,6 +705,7 @@ function handle_input(_char)
         _char.idle_counter = 0
         _char.state = 'walk'
         hud:clear_msg()
+        state = 'e_turn'
     end
 
     local _x
@@ -770,6 +767,13 @@ function check_space(_char)
     -- exit
     if (space.flag == 7) then
         level += 1
+        -- todo: refactor this
+        for g in all(goombas._) do
+            del(goombas._, g)
+        end
+        for g in all(evil_goombas._) do
+            del(evil_goombas._, g)
+        end
         map = generate_map()
     end
 
@@ -857,6 +861,17 @@ goomba={
             local dir = rnd(dirs)
             local new_x = self.x + cos(dir)
             local new_y = self.y + sin(dir)
+
+            -- check to see if it hits player
+            if (coord_match({new_y, new_x}, {char.y, char.x})) then
+                new_cell = {self.y, self.x}
+                sfx(5)
+                hlog('the goomba strikes!')
+                -- add_new_dust(char.x * 8, char.y * 8, 1, 1, 5, 5, 1, 8)
+                pal(11,8)
+                char.health -= 1
+                break
+            end
 
             if (in_bounds(new_y, new_x) and map[new_y][new_x].flag == 0) then
                 new_cell = {new_y, new_x}
@@ -977,7 +992,7 @@ __sfx__
 00040000086310063100630006330a6000a6000a6000a6030960309603086030760307603086030860308603006030e6030f6031a603036030f6030f6030e6030e60313603146031460314603136031260312603
 000600001762416621166211460002600026540263302625176041660116601146000260002604026030260527604166011660114600026000260402603026050c7000c7000c7000c7000c7000c7000c7000c705
 0005000005554155500c5501c55011550215501855028550185002852011500285101b50028510005001c7051c7041c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c705
-011800002373423730237302373023730237302373023730237302373023730237302373023730237302373523734237302373023730237302373023730237302373023730237302373023730237302373023735
+000300003255429550225501b550165500b5500255000650237002370023700237002370023700237002370523704237002370023700237002370023700237002370023700237002370023700237002370023705
 011800000e0331f70526704267050d6152370524704247050e03300000000050000500005000050d615000050e0330000500005000050d615040050b005070050e03300005000050000500005000050d61500005
 011200001f7341f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7351f7341f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f735
 011100002305033000240502400023050000001f050000001c050000001a050000001c0541c0501c0501c0551f000000001f0541f0501f0501f0552100000000210542105021051210001f0541f0401f0301f020

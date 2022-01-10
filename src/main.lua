@@ -22,18 +22,17 @@ function _init()
     levels=roll_levels()
     map=generate_map()
     hud=init_hud()
+    state='p_turn'
 end
    
 function _update()
+    pal()
     t=(t+1)%128
- 
-    char:update()
-    hud:update()
 
-    -- shots:update()
-    -- booms:update()
-
-    if ((t%16)==0) then
+    if (state == 'p_turn') then
+        char:update()
+    elseif (state == 'e_turn') then
+        state = 'p_turn'
         goombas:update()
         evil_goombas:update()
     end
@@ -42,6 +41,7 @@ function _update()
         d:update()
     end
 
+    hud:update()
     cam.x = max(char.x - 8, 0)
     cam.y = max(char.y - 8, 0)
 end
@@ -59,9 +59,9 @@ function _draw()
     goombas:draw()
     evil_goombas:draw()
    
-    -- for d in all(dust) do
-    --     d:draw()
-    -- end
+    for d in all(dust) do
+        d:draw()
+    end
        
     -- debug()
 end

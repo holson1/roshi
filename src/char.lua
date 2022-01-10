@@ -102,6 +102,7 @@ function handle_input(_char)
         _char.idle_counter = 0
         _char.state = 'walk'
         hud:clear_msg()
+        state = 'e_turn'
     end
 
     local _x
@@ -163,6 +164,13 @@ function check_space(_char)
     -- exit
     if (space.flag == 7) then
         level += 1
+        -- todo: refactor this
+        for g in all(goombas._) do
+            del(goombas._, g)
+        end
+        for g in all(evil_goombas._) do
+            del(evil_goombas._, g)
+        end
         map = generate_map()
     end
 

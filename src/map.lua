@@ -81,11 +81,7 @@ function place_enemies(rooms)
     -- this will really depend on level but _FOR NOW_ let's do the easy thing and gen a default number
 
     for room in all(rooms) do
-        if (rnd() > 0.5) then
-            evil_goombas:new({x=room[2],y=room[1]})
-        else
-            goombas:new({x=room[2],y=room[1]})
-        end
+        goombas:new({x=room[2],y=room[1]})
     end
 end
 

@@ -27,6 +27,17 @@ goomba={
             local new_x = self.x + cos(dir)
             local new_y = self.y + sin(dir)
 
+            -- check to see if it hits player
+            if (coord_match({new_y, new_x}, {char.y, char.x})) then
+                new_cell = {self.y, self.x}
+                sfx(5)
+                hlog('the goomba strikes!')
+                -- add_new_dust(char.x * 8, char.y * 8, 1, 1, 5, 5, 1, 8)
+                pal(11,8)
+                char.health -= 1
+                break
+            end
+
             if (in_bounds(new_y, new_x) and map[new_y][new_x].flag == 0) then
                 new_cell = {new_y, new_x}
             else
