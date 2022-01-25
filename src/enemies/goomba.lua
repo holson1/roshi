@@ -32,7 +32,6 @@ goomba={
                 new_cell = {self.y, self.x}
                 sfx(5)
                 hlog('the goomba strikes!')
-                -- add_new_dust(char.x * 8, char.y * 8, 1, 1, 5, 5, 1, 8)
                 pal(11,8)
                 char.health -= 1
                 break
