@@ -200,6 +200,8 @@ function generate_map()
 
     -- place enemies
     place_enemies({room1_c, room2_c})
+    lamia.x = key_c[x]
+    lamia.y = key_c[y]
 
     return _map
 end

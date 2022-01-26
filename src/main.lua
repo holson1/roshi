@@ -35,7 +35,10 @@ function _update()
         state = 'p_turn'
         goombas:update()
         evil_goombas:update()
+        lamia:turn()
     end
+
+    lamia:update()
    
     for d in all(dust) do
         d:update()
@@ -62,6 +65,7 @@ function _draw()
     for d in all(dust) do
         d:draw()
     end
-       
+      
+    lamia:draw()
     -- debug()
 end
