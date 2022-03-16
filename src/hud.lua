@@ -1,6 +1,5 @@
 -- hud
 
-
 function _use_inspect()
 end
 
@@ -107,6 +106,9 @@ function init_hud()
             end
 
             -- level
+            if (levels != nil) then
+                print(levels[level], x+16, y, 10)
+            end
             print('l' .. level, x+116, y, 10)
         end
     }

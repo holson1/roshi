@@ -152,6 +152,8 @@ end
 
 function generate_map()
     local _map = {}
+
+    -- fake wall generation
     for i=0,MAP_SIZE do
         add(_map, {})
         for j=0,MAP_SIZE do

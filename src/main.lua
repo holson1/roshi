@@ -66,6 +66,6 @@ function _draw()
         d:draw()
     end
       
-    lamia:draw()
+    -- lamia:draw()
     -- debug()
 end
