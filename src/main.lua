@@ -23,6 +23,7 @@ function _init()
     map=generate_map()
     hud=init_hud()
     state='p_turn'
+    anim_time=0
 end
    
 function _update()
@@ -30,15 +31,36 @@ function _update()
     t=(t+1)%128
 
     if (state == 'p_turn') then
-        char:update()
+        char:turn()
+        if (char.action_taken) then
+            state = 'p_anim'
+        end
+    elseif (state == 'p_anim') then
+        char.action_taken = false
+
+        if (anim_time >= 1) then
+            anim_time = 0
+            state = 'e_turn'
+        else
+            anim_time += 1
+        end
     elseif (state == 'e_turn') then
-        state = 'p_turn'
+        state = 'e_anim'
         goombas:update()
         evil_goombas:update()
-        lamia:turn()
+        -- lamia:turn()
+    elseif (state == 'e_anim') then
+        if (anim_time >= 1) then
+            anim_time = 0
+            state = 'p_turn'
+        else
+            anim_time += 1
+        end
     end
 
-    lamia:update()
+
+    char:update()
+    -- lamia:update()
    
     for d in all(dust) do
         d:update()
@@ -66,6 +88,5 @@ function _draw()
         d:draw()
     end
       
-    -- lamia:draw()
     -- debug()
 end

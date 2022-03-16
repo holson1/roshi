@@ -25,9 +25,28 @@ function init_hud()
         end,
 
         pickup_item = function(self, item)
-            add(self.items, item)
+            local existing_item = self:find_item(item.name)
+
+            if (existing_item) then
+                if (existing_item.count != nil) then
+                    existing_item.count += 1
+                end
+            else
+                item.count = item._count
+                add(self.items, item)
+            end
+
             sfx(item.sfx)
             self:set_msg('got: `' .. item.name .. '`', item.desc)
+        end,
+
+        find_item = function(self, name)
+            for i in all(self.items) do
+                if (i.name == name) then
+                    return i
+                end
+            end
+            return nil 
         end,
 
         update = function(self)
@@ -37,8 +56,10 @@ function init_hud()
 
             -- USE ITEM (Z)
             if (btnp(4)) then
-                sfx(self.items[self.selected_item].sfx) 
-                self.items[self.selected_item].use()
+                local this_item = self.items[self.selected_item]
+
+                sfx(this_item.sfx) 
+                this_item.use(this_item)
 
                 -- catch error w/ using last item
                 if (self.selected_item > #self.items) then
@@ -64,6 +85,11 @@ function init_hud()
             -- items
             for i=1,#self.items do
                 spr(self.items[i].spr,x,y+(i*8)-8)
+                local item_count = self.items[i].count
+
+                if (item_count != nil and item_count > 1) then
+                    print(item_count,x+5,y+(i*8)-5,8)
+                end
                 if (i == self.selected_item) then
                     spr(016 + self.spri,x,y+(i*8)-8)
                 end
@@ -184,8 +210,15 @@ key = {
     name='key',
     spr=80,
     desc='best used for unlocking',
+    _count=1,
+    count=1,
     sfx=1,
-    use=function() end
+    use=function()
+    end,
+    consume=function(self)
+        handle_count(self)
+        hlog('*click*')
+    end,
 }
 
 shovel = {
@@ -193,7 +226,7 @@ shovel = {
     name='rusted shovel',
     desc='dig down one level',
     sfx=3,
-    use = function ()
+    use=function()
         hud:set_msg('you strike the earth', 'the shovel breaks!')
         level += 1
         map = generate_map()
@@ -206,7 +239,7 @@ hyper_specs = {
     name='hyper specs',
     desc='see fake walls',
     sfx=4,
-    use = function ()
+    use=function()
         hlog('you peer into the void.')
         fake_wall.spr = 023
     end
@@ -216,7 +249,7 @@ inspect = {
     spr=034,
     name='inspect',
     desc='look around',
-    use=function ()
+    use=function()
     end
 }
 
@@ -224,7 +257,7 @@ tongue = {
     spr=033,
     name='tongue',
     desc='grab things 2 tiles away',
-    use=function ()
+    use=function()
     end
 }
 
@@ -232,9 +265,29 @@ egg = {
     spr=032,
     name='egg',
     desc='throw at enemies',
-    use=function ()
+    _count=2,
+    count=2,
+    sfx=006,
+    use=function(self)
+        handle_count(self)
     end
 }
+
+jump_boots = {
+    spr=041,
+    name='jump boots',
+    desc='used in plyometric training',
+    sfx=006,
+    use=function()
+    end
+}
+
+function handle_count(inst)
+    inst.count -= 1
+    if (inst.count < 1) then
+        del(hud.items, inst)
+    end
+end
 
 -- coins
 coin = {
@@ -252,10 +305,16 @@ red_coin = {
 }
 
 function roll_random_item()
-    if (rnd() > 0.5) then
+    -- todo: use chest pools instead
+    local r = rnd()
+    if (r > 0.7) then
         return shovel
-    else
+    elseif (r > 0.5) then
         return hyper_specs
+    elseif (r > 0.3) then
+        return jump_boots
+    else
+        return egg
     end
 end
 -->8
@@ -285,6 +344,7 @@ function _init()
     map=generate_map()
     hud=init_hud()
     state='p_turn'
+    anim_time=0
 end
    
 function _update()
@@ -292,15 +352,36 @@ function _update()
     t=(t+1)%128
 
     if (state == 'p_turn') then
-        char:update()
+        char:turn()
+        if (char.action_taken) then
+            state = 'p_anim'
+        end
+    elseif (state == 'p_anim') then
+        char.action_taken = false
+
+        if (anim_time >= 1) then
+            anim_time = 0
+            state = 'e_turn'
+        else
+            anim_time += 1
+        end
     elseif (state == 'e_turn') then
-        state = 'p_turn'
+        state = 'e_anim'
         goombas:update()
         evil_goombas:update()
-        lamia:turn()
+        -- lamia:turn()
+    elseif (state == 'e_anim') then
+        if (anim_time >= 1) then
+            anim_time = 0
+            state = 'p_turn'
+        else
+            anim_time += 1
+        end
     end
 
-    lamia:update()
+
+    char:update()
+    -- lamia:update()
    
     for d in all(dust) do
         d:update()
@@ -328,7 +409,6 @@ function _draw()
         d:draw()
     end
       
-    -- lamia:draw()
     -- debug()
 end
 -->8
@@ -701,6 +781,7 @@ function init_char()
         flip=false,
         max_health=5,
         health=3,
+        action_taken=false,
 
         states={
             'base',
@@ -717,6 +798,7 @@ function init_char()
             return self.animations[self.state]
         end,
         collide=collide,
+        turn=char_turn,
         update=update_char,
 
         -- all game logic should be implemented in cells, only draw functions care about px
@@ -728,10 +810,9 @@ function init_char()
 end
 
 function collide_exit_door(y, x, space)
-    if (count(hud.items, key) > 0) then
-        hlog('*click*')
+    if (hud:find_item(key.name) != nil) then
+        key.consume(key)
         map[y][x] = exit
-        del(hud.items, key)
     else
         hlog('i need a key!')
     end
@@ -757,6 +838,11 @@ function collide(_char, space, y, x)
     end
 end
 
+function char_turn(_char)
+    handle_input(_char)
+    check_space(_char)
+end
+
 function update_char(_char)
     if (_char.state == 'base') then
         _char.spri = 0
@@ -766,9 +852,6 @@ function update_char(_char)
     if (_char.state == 'walk') then
         _char.move_counter += 1
     end
-
-    check_space(_char)
-    handle_input(_char)
 
     if (_char.idle_counter > 128) then
         _char.state = 'idle'
@@ -791,8 +874,8 @@ function handle_input(_char)
     if (btnp(0) or btnp(1) or btnp(2) or btnp(3)) then
         _char.idle_counter = 0
         _char.state = 'walk'
+        _char.action_taken = true
         hud:clear_msg()
-        state = 'e_turn'
     end
 
     local _x
@@ -1196,7 +1279,7 @@ __sfx__
 000600001762416621166211460002600026540263302625176041660116601146000260002604026030260527604166011660114600026000260402603026050c7000c7000c7000c7000c7000c7000c7000c705
 0005000005554155500c5501c55011550215501855028550185002852011500285101b50028510005001c7051c7041c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c7001c705
 000300003255429550225501b550165500b5500255000650237002370023700237002370023700237002370523704237002370023700237002370023700237002370023700237002370023700237002370023705
-011800000e0331f70526704267050d6152370524704247050e03300000000050000500005000050d615000050e0330000500005000050d615040050b005070050e03300005000050000500005000050d61500005
+00010000090330c0350e0340f0351203516035190341a0351c03320030220352403525035270352b0352e03531033350353803539035190050b0050a005390050900308005390150500504005380053901539005
 011200001f7341f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7351f7341f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f7301f735
 011100002305033000240502400023050000001f050000001c050000001a050000001c0541c0501c0501c0551f000000001f0541f0501f0501f0552100000000210542105021051210001f0541f0401f0301f020
 011000002f0501770430050240002f050000002b050000002f0501c0002b0501c000240501f000230501f0002305033000240502400023050000001f050000001c0541c0501c0501c0551a0541a0501a0501a055
@@ -1238,9 +1321,9 @@ __music__
 00 41424344
 00 41424344
 00 41424344
-00 09424344
-01 0a0e4344
-00 0b0e4344
-00 0c0e4344
-02 0d0e4344
+00 49424344
+01 4a4e4344
+00 4c4e4344
+00 4c4e4344
+02 4d4e4344
 

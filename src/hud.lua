@@ -21,9 +21,28 @@ function init_hud()
         end,
 
         pickup_item = function(self, item)
-            add(self.items, item)
+            local existing_item = self:find_item(item.name)
+
+            if (existing_item) then
+                if (existing_item.count != nil) then
+                    existing_item.count += 1
+                end
+            else
+                item.count = item._count
+                add(self.items, item)
+            end
+
             sfx(item.sfx)
             self:set_msg('got: `' .. item.name .. '`', item.desc)
+        end,
+
+        find_item = function(self, name)
+            for i in all(self.items) do
+                if (i.name == name) then
+                    return i
+                end
+            end
+            return nil 
         end,
 
         update = function(self)
@@ -33,8 +52,10 @@ function init_hud()
 
             -- USE ITEM (Z)
             if (btnp(4)) then
-                sfx(self.items[self.selected_item].sfx) 
-                self.items[self.selected_item].use()
+                local this_item = self.items[self.selected_item]
+
+                sfx(this_item.sfx) 
+                this_item.use(this_item)
 
                 -- catch error w/ using last item
                 if (self.selected_item > #self.items) then
@@ -60,6 +81,11 @@ function init_hud()
             -- items
             for i=1,#self.items do
                 spr(self.items[i].spr,x,y+(i*8)-8)
+                local item_count = self.items[i].count
+
+                if (item_count != nil and item_count > 1) then
+                    print(item_count,x+5,y+(i*8)-5,8)
+                end
                 if (i == self.selected_item) then
                     spr(016 + self.spri,x,y+(i*8)-8)
                 end

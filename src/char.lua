@@ -11,6 +11,7 @@ function init_char()
         flip=false,
         max_health=5,
         health=3,
+        action_taken=false,
 
         states={
             'base',
@@ -27,6 +28,7 @@ function init_char()
             return self.animations[self.state]
         end,
         collide=collide,
+        turn=char_turn,
         update=update_char,
 
         -- all game logic should be implemented in cells, only draw functions care about px
@@ -38,10 +40,9 @@ function init_char()
 end
 
 function collide_exit_door(y, x, space)
-    if (count(hud.items, key) > 0) then
-        hlog('*click*')
+    if (hud:find_item(key.name) != nil) then
+        key.consume(key)
         map[y][x] = exit
-        del(hud.items, key)
     else
         hlog('i need a key!')
     end
@@ -67,6 +68,11 @@ function collide(_char, space, y, x)
     end
 end
 
+function char_turn(_char)
+    handle_input(_char)
+    check_space(_char)
+end
+
 function update_char(_char)
     if (_char.state == 'base') then
         _char.spri = 0
@@ -76,9 +82,6 @@ function update_char(_char)
     if (_char.state == 'walk') then
         _char.move_counter += 1
     end
-
-    check_space(_char)
-    handle_input(_char)
 
     if (_char.idle_counter > 128) then
         _char.state = 'idle'
@@ -101,8 +104,8 @@ function handle_input(_char)
     if (btnp(0) or btnp(1) or btnp(2) or btnp(3)) then
         _char.idle_counter = 0
         _char.state = 'walk'
+        _char.action_taken = true
         hud:clear_msg()
-        state = 'e_turn'
     end
 
     local _x
