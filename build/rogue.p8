@@ -4,26 +4,10 @@ __lua__
 --src/hud.lua
 -- hud
 
-function _use_inspect()
-end
-
-function _use_tongue()
-end
-
-function _use_egg()
-end
-
-function _use_key()
-end
-
 function init_hud()
     local hud = {
 
-        items={
-            {spr=034, name='inspect', desc='look around', use=_use_inspect},
-            {spr=033, name='tongue', desc='grab things 2 tiles away', use=_use_tongue},
-            {spr=032, name='egg', desc='throw at enemies', use=_use_egg}
-        },
+        items={inspect, tongue, egg},
         selected_item=1,
         msg1="welcome to roshi's dungeon",
         msg2='find the key',
@@ -51,7 +35,7 @@ function init_hud()
                 self.spri = (self.spri + 1) % 2
             end
 
-            -- use
+            -- USE ITEM (Z)
             if (btnp(4)) then
                 sfx(self.items[self.selected_item].sfx) 
                 self.items[self.selected_item].use()
@@ -62,7 +46,7 @@ function init_hud()
                 end
             end
 
-            -- rotate
+            -- ROTATE ITEM (X)
             if (btnp(5)) then
                 self.selected_item = (self.selected_item + 1) % #self.items
                 if (self.selected_item == 0) then
@@ -111,7 +95,7 @@ function init_hud()
 
             -- level
             if (levels != nil) then
-                print(levels[level], x+8, y, 10)
+                print(levels[level], x+16, y, 10)
             end
             print('l' .. level, x+116, y, 10)
         end
@@ -225,6 +209,30 @@ hyper_specs = {
     use = function ()
         hlog('you peer into the void.')
         fake_wall.spr = 023
+    end
+}
+
+inspect = {
+    spr=034,
+    name='inspect',
+    desc='look around',
+    use=function ()
+    end
+}
+
+tongue = {
+    spr=033,
+    name='tongue',
+    desc='grab things 2 tiles away',
+    use=function ()
+    end
+}
+
+egg = {
+    spr=032,
+    name='egg',
+    desc='throw at enemies',
+    use=function ()
     end
 }
 
@@ -479,6 +487,8 @@ end
 
 function generate_map()
     local _map = {}
+
+    -- fake wall generation
     for i=0,MAP_SIZE do
         add(_map, {})
         for j=0,MAP_SIZE do

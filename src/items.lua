@@ -31,6 +31,30 @@ hyper_specs = {
     end
 }
 
+inspect = {
+    spr=034,
+    name='inspect',
+    desc='look around',
+    use=function ()
+    end
+}
+
+tongue = {
+    spr=033,
+    name='tongue',
+    desc='grab things 2 tiles away',
+    use=function ()
+    end
+}
+
+egg = {
+    spr=032,
+    name='egg',
+    desc='throw at enemies',
+    use=function ()
+    end
+}
+
 -- coins
 coin = {
     id='coin',
