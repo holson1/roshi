@@ -28,6 +28,7 @@ function init_char()
             return self.animations[self.state]
         end,
         collide=collide,
+        update_position=update_position,
         turn=char_turn,
         update=update_char,
 
@@ -69,7 +70,6 @@ function collide(_char, space, y, x)
 end
 
 function char_turn(_char)
-    handle_input(_char)
     check_space(_char)
 end
 
@@ -100,49 +100,6 @@ function update_char(_char)
     end
 end
 
-function handle_input(_char)
-    if (btnp(0) or btnp(1) or btnp(2) or btnp(3)) then
-        _char.idle_counter = 0
-        _char.state = 'walk'
-        _char.action_taken = true
-        hud:clear_msg()
-    end
-
-    local _x
-    local _y
-
-    if (btnp(0)) then
-        _x = _char.x - 1
-        _y = _char.y
-
-        update_position(_char, _y, _x)
-        _char.flip = true
-    end
-
-    if (btnp(1)) then
-        _x = _char.x + 1
-        _y = _char.y
-
-        update_position(_char, _y, _x)
-        _char.flip = false
-    end
-
-    if (btnp(2)) then
-        _x = _char.x
-        _y = _char.y - 1
-
-        update_position(_char, _y, _x)
-    end
-
-    if (btnp(3)) then
-        _x = _char.x
-        _y = _char.y + 1
-
-        update_position(_char, _y, _x)
-    end
-
-end
-  
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then

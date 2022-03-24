@@ -31,6 +31,7 @@ function _update()
     t=(t+1)%128
 
     if (state == 'p_turn') then
+        handle_input()
         char:turn()
         if (char.action_taken) then
             state = 'p_anim'

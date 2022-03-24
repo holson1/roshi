@@ -6,7 +6,6 @@ __lua__
 
 function init_hud()
     local hud = {
-
         items={inspect, tongue, egg},
         selected_item=1,
         msg1="welcome to roshi's dungeon",
@@ -49,32 +48,30 @@ function init_hud()
             return nil 
         end,
 
+        use_selected_item = function(self)
+            local this_item = self.items[self.selected_item]
+
+            sfx(this_item.sfx) 
+            this_item.use(this_item)
+    
+            -- catch error w/ using last item
+            if (self.selected_item > #self.items) then
+                self.selected_item = #self.items
+            end
+        end,
+
+        rotate_selected_item = function(self)
+            self.selected_item = (self.selected_item + 1) % #self.items
+            if (self.selected_item == 0) then
+                self.selected_item = #self.items
+            end
+    
+            self:set_msg(self.items[self.selected_item]['name'],self.items[self.selected_item]['desc'])
+        end,
+
         update = function(self)
             if (t%8 == 0) then
                 self.spri = (self.spri + 1) % 2
-            end
-
-            -- USE ITEM (Z)
-            if (btnp(4)) then
-                local this_item = self.items[self.selected_item]
-
-                sfx(this_item.sfx) 
-                this_item.use(this_item)
-
-                -- catch error w/ using last item
-                if (self.selected_item > #self.items) then
-                    self.selected_item = #self.items
-                end
-            end
-
-            -- ROTATE ITEM (X)
-            if (btnp(5)) then
-                self.selected_item = (self.selected_item + 1) % #self.items
-                if (self.selected_item == 0) then
-                    self.selected_item = #self.items
-                end
-
-                self:set_msg(self.items[self.selected_item]['name'],self.items[self.selected_item]['desc'])
             end
         end,
 
@@ -318,6 +315,54 @@ function roll_random_item()
     end
 end
 -->8
+--src/controller.lua
+-- game controller
+
+function handle_input()
+    local did_move = true
+    local did_act = true
+
+    if (btnp(0)) then
+        -- LEFT
+        char:update_position(char.y, char.x - 1)
+        char.flip = true
+    elseif (btnp(1)) then
+        -- RIGHT
+        char:update_position(char.y, char.x + 1)
+        char.flip = false
+    elseif (btnp(2)) then
+        -- UP
+        char:update_position(char.y - 1, char.x)
+    elseif (btnp(3)) then
+        -- DOWN
+        char:update_position(char.y + 1, char.x)
+    else
+        did_move = false
+
+        if (btnp(4)) then
+            -- USE ITEM (Z)
+            hud:use_selected_item()
+        elseif (btnp(5)) then
+            -- ROTATE ITEM (X)
+            hud:rotate_selected_item()
+            did_act = false
+        else
+            did_act = false
+            -- no button pressed
+        end
+    end
+
+    if (did_move) then
+        char.idle_counter = 0
+        char.state = 'walk'
+    end
+
+    if (did_act) then
+        char.action_taken = true
+        hud:clear_msg()
+    end
+end
+-->8
 --src/main.lua
 -- rogue
 
@@ -352,6 +397,7 @@ function _update()
     t=(t+1)%128
 
     if (state == 'p_turn') then
+        handle_input()
         char:turn()
         if (char.action_taken) then
             state = 'p_anim'
@@ -798,6 +844,7 @@ function init_char()
             return self.animations[self.state]
         end,
         collide=collide,
+        update_position=update_position,
         turn=char_turn,
         update=update_char,
 
@@ -839,7 +886,6 @@ function collide(_char, space, y, x)
 end
 
 function char_turn(_char)
-    handle_input(_char)
     check_space(_char)
 end
 
@@ -870,49 +916,6 @@ function update_char(_char)
     end
 end
 
-function handle_input(_char)
-    if (btnp(0) or btnp(1) or btnp(2) or btnp(3)) then
-        _char.idle_counter = 0
-        _char.state = 'walk'
-        _char.action_taken = true
-        hud:clear_msg()
-    end
-
-    local _x
-    local _y
-
-    if (btnp(0)) then
-        _x = _char.x - 1
-        _y = _char.y
-
-        update_position(_char, _y, _x)
-        _char.flip = true
-    end
-
-    if (btnp(1)) then
-        _x = _char.x + 1
-        _y = _char.y
-
-        update_position(_char, _y, _x)
-        _char.flip = false
-    end
-
-    if (btnp(2)) then
-        _x = _char.x
-        _y = _char.y - 1
-
-        update_position(_char, _y, _x)
-    end
-
-    if (btnp(3)) then
-        _x = _char.x
-        _y = _char.y + 1
-
-        update_position(_char, _y, _x)
-    end
-
-end
-  
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
@@ -1192,13 +1195,13 @@ b3133131982882826c1cc1c1000033000000220000004400088203000dd10300300030b001050050
 000ff000000ff000000ff0000001100000011000001111100011111000111110001111106d0660d66d0110d60000000000000000000000000000000000000000
 00440440044044000440440000220220022022000001110000010100000101000001110000000000000660000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+7970b300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+090b33307970b3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+a9933333090b33300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+99933336a99333330000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00973360999333360000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00097790009733600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00990090009977900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

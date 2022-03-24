@@ -2,7 +2,6 @@
 
 function init_hud()
     local hud = {
-
         items={inspect, tongue, egg},
         selected_item=1,
         msg1="welcome to roshi's dungeon",
@@ -45,32 +44,30 @@ function init_hud()
             return nil 
         end,
 
+        use_selected_item = function(self)
+            local this_item = self.items[self.selected_item]
+
+            sfx(this_item.sfx) 
+            this_item.use(this_item)
+    
+            -- catch error w/ using last item
+            if (self.selected_item > #self.items) then
+                self.selected_item = #self.items
+            end
+        end,
+
+        rotate_selected_item = function(self)
+            self.selected_item = (self.selected_item + 1) % #self.items
+            if (self.selected_item == 0) then
+                self.selected_item = #self.items
+            end
+    
+            self:set_msg(self.items[self.selected_item]['name'],self.items[self.selected_item]['desc'])
+        end,
+
         update = function(self)
             if (t%8 == 0) then
                 self.spri = (self.spri + 1) % 2
-            end
-
-            -- USE ITEM (Z)
-            if (btnp(4)) then
-                local this_item = self.items[self.selected_item]
-
-                sfx(this_item.sfx) 
-                this_item.use(this_item)
-
-                -- catch error w/ using last item
-                if (self.selected_item > #self.items) then
-                    self.selected_item = #self.items
-                end
-            end
-
-            -- ROTATE ITEM (X)
-            if (btnp(5)) then
-                self.selected_item = (self.selected_item + 1) % #self.items
-                if (self.selected_item == 0) then
-                    self.selected_item = #self.items
-                end
-
-                self:set_msg(self.items[self.selected_item]['name'],self.items[self.selected_item]['desc'])
             end
         end,
 
