@@ -24,7 +24,7 @@ function new_group(bp)
         
         draw=function(self)
             for v in all(self._) do
-                spr(v.s,v.x*8,v.y*8)
+                spr(v.s,v.x*8,v.y*8,1,1,v.flip)
             end
         end
     }

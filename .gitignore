@@ -5,3 +5,4 @@
 .idea
 lua
 luarocks
+**/*/.DS_Store

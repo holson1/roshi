@@ -382,6 +382,7 @@ function _init()
 
     goombas=new_group(goomba)
     evil_goombas = new_group(evil_goomba)
+    g_koopas=new_group(g_koopa)
 
     char=init_char()
     levels=roll_levels()
@@ -414,7 +415,7 @@ function _update()
         state = 'e_anim'
         goombas:update()
         evil_goombas:update()
-        -- lamia:turn()
+        g_koopas:update()
     elseif (state == 'e_anim') then
         if (anim_time >= 1) then
             anim_time = 0
@@ -424,9 +425,7 @@ function _update()
         end
     end
 
-
     char:update()
-    -- lamia:update()
    
     for d in all(dust) do
         d:update()
@@ -447,7 +446,9 @@ function _draw()
 
     hud:draw()
 
+    -- todo: generic enemy management
     goombas:draw()
+    g_koopas:draw()
     evil_goombas:draw()
    
     for d in all(dust) do
@@ -542,6 +543,7 @@ function place_enemies(rooms)
 
     for room in all(rooms) do
         goombas:new({x=room[2],y=room[1]})
+        g_koopas:new({x=room[2],y=room[1]})
     end
 end
 
@@ -662,7 +664,7 @@ function generate_map()
     _map[room1_c[y]][room1_c[x]] = place_chest()
 
     -- place enemies
-    place_enemies({room1_c, room2_c})
+    place_enemies({room1_c, room2_c, exit_c})
     lamia.x = key_c[x]
     lamia.y = key_c[y]
 
@@ -752,7 +754,7 @@ function new_group(bp)
         
         draw=function(self)
             for v in all(self._) do
-                spr(v.s,v.x*8,v.y*8)
+                spr(v.s,v.x*8,v.y*8,1,1,v.flip)
             end
         end
     }
@@ -1062,6 +1064,50 @@ evil_goomba={
             elseif (y_diff > 0) then
                 self.y += 1
             end
+        end
+    end
+}
+-->8
+--src/enemies/g_koopa.lua
+g_koopa={
+    life=1,
+    s=128,
+    x=nil,
+    y=nil,
+    state='walk',
+    spri=0,
+    dir=-1,
+    flip=true,
+
+    animations={
+        idle={144},
+        walk={144,145}
+    },
+
+    update=function(self)
+        -- generic animation code
+        self.spri = (self.spri + 1) % 16
+        local anim = self.animations[self.state]
+        local transformed_spri = (self.spri % #anim) + 1
+        self.s = anim[transformed_spri]
+
+        local new_x = self.x + self.dir 
+
+        -- check to see if it hits player
+        if (coord_match({self.y, new_x}, {char.y, char.x})) then
+            new_cell = {self.y, self.x}
+            sfx(5)
+            hlog('the koopa bites!')
+            pal(11,8)
+            char.health -= 1
+            return
+        end
+
+        if (in_bounds(self.y, new_x) and map[self.y][new_x].flag == 0) then
+            self.x = new_x
+        else
+            self.dir = self.dir * -1
+            self.flip = self.dir > 0
         end
     end
 }

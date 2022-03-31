@@ -82,6 +82,7 @@ function place_enemies(rooms)
 
     for room in all(rooms) do
         goombas:new({x=room[2],y=room[1]})
+        g_koopas:new({x=room[2],y=room[1]})
     end
 end
 
@@ -202,7 +203,7 @@ function generate_map()
     _map[room1_c[y]][room1_c[x]] = place_chest()
 
     -- place enemies
-    place_enemies({room1_c, room2_c})
+    place_enemies({room1_c, room2_c, exit_c})
     lamia.x = key_c[x]
     lamia.y = key_c[y]
 
