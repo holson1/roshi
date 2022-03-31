@@ -1,4 +1,4 @@
-Finally Finish Something Game Jam 2021
+Rogue Yoshi for Pico8
 
-`luarocks install watcher`
+`luarocks install --only-deps roshi-dev-1.rockspec`
 `lua build.lua`

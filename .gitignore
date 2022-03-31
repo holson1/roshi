@@ -1,1 +1,7 @@
-.DS_Store
+.DS_Store/luarocks
+/lua
+/lua_modules
+/.luarocks
+.idea
+lua
+luarocks
