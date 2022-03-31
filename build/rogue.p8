@@ -377,11 +377,7 @@ function _init()
     -- thanks doc_robs!
     dust={}
        
-    -- shots=new_group(shot)
-    -- booms=new_group(boom)
-
     goombas=new_group(goomba)
-    evil_goombas = new_group(evil_goomba)
     g_koopas=new_group(g_koopa)
 
     char=init_char()
@@ -413,9 +409,8 @@ function _update()
         end
     elseif (state == 'e_turn') then
         state = 'e_anim'
-        goombas:update()
-        evil_goombas:update()
-        g_koopas:update()
+        goombas:turn()
+        g_koopas:turn()
     elseif (state == 'e_anim') then
         if (anim_time >= 1) then
             anim_time = 0
@@ -426,6 +421,8 @@ function _update()
     end
 
     char:update()
+    goombas:update()
+    g_koopas:update()
    
     for d in all(dust) do
         d:update()
@@ -449,7 +446,6 @@ function _draw()
     -- todo: generic enemy management
     goombas:draw()
     g_koopas:draw()
-    evil_goombas:draw()
    
     for d in all(dust) do
         d:draw()
@@ -611,9 +607,20 @@ function draw_room(_map, point)
     end
 end
 
+function clear_map()
+    for g in all(goombas._) do
+        del(goombas._, g)
+    end
+    for g in all(g_koopas._) do
+        del(g_koopas._, g)
+    end
+end
 
 function generate_map()
     local _map = {}
+
+    -- clear any existing enemies
+    clear_map()
 
     -- fake wall generation
     for i=0,MAP_SIZE do
@@ -749,6 +756,12 @@ function new_group(bp)
                 if v.alive==false then
                 del(self._,self._[i])
                 end
+            end
+        end,
+
+        turn=function(self)
+            for v in all(self._) do
+                v:turn()
             end
         end,
         
@@ -942,13 +955,6 @@ function check_space(_char)
     -- exit
     if (space.flag == 7) then
         level += 1
-        -- todo: refactor this
-        for g in all(goombas._) do
-            del(goombas._, g)
-        end
-        for g in all(evil_goombas._) do
-            del(evil_goombas._, g)
-        end
         map = generate_map()
     end
 
@@ -1086,11 +1092,15 @@ g_koopa={
 
     update=function(self)
         -- generic animation code
-        self.spri = (self.spri + 1) % 16
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        self.s = anim[transformed_spri]
+        if (t%8 == 0) then
+            self.spri = (self.spri + 1) % 16
+            local anim = self.animations[self.state]
+            local transformed_spri = (self.spri % #anim) + 1
+            self.s = anim[transformed_spri]
+        end
+    end,
 
+    turn=function(self)
         local new_x = self.x + self.dir 
 
         -- check to see if it hits player
@@ -1127,13 +1137,15 @@ goomba={
     },
 
     update=function(self)
-        -- generic animation code
-        self.spri = (self.spri + 1) % 16
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        
-        self.s = anim[transformed_spri]
-
+        if (t%8 == 0) then
+            self.spri = (self.spri + 1) % 16
+            local anim = self.animations[self.state]
+            local transformed_spri = (self.spri % #anim) + 1
+            self.s = anim[transformed_spri]
+        end
+    end,
+    
+    turn=function(self)
         -- goombas move in random directions
         local new_cell = nil
         local dirs = {0,0.25,0.5,0.75}

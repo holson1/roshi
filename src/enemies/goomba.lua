@@ -12,13 +12,15 @@ goomba={
     },
 
     update=function(self)
-        -- generic animation code
-        self.spri = (self.spri + 1) % 16
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        
-        self.s = anim[transformed_spri]
-
+        if (t%8 == 0) then
+            self.spri = (self.spri + 1) % 16
+            local anim = self.animations[self.state]
+            local transformed_spri = (self.spri % #anim) + 1
+            self.s = anim[transformed_spri]
+        end
+    end,
+    
+    turn=function(self)
         -- goombas move in random directions
         local new_cell = nil
         local dirs = {0,0.25,0.5,0.75}

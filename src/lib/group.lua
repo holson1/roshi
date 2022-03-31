@@ -21,6 +21,12 @@ function new_group(bp)
                 end
             end
         end,
+
+        turn=function(self)
+            for v in all(self._) do
+                v:turn()
+            end
+        end,
         
         draw=function(self)
             for v in all(self._) do

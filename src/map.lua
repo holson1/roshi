@@ -150,9 +150,20 @@ function draw_room(_map, point)
     end
 end
 
+function clear_map()
+    for g in all(goombas._) do
+        del(goombas._, g)
+    end
+    for g in all(g_koopas._) do
+        del(g_koopas._, g)
+    end
+end
 
 function generate_map()
     local _map = {}
+
+    -- clear any existing enemies
+    clear_map()
 
     -- fake wall generation
     for i=0,MAP_SIZE do

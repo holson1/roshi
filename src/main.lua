@@ -12,11 +12,7 @@ function _init()
     -- thanks doc_robs!
     dust={}
        
-    -- shots=new_group(shot)
-    -- booms=new_group(boom)
-
     goombas=new_group(goomba)
-    evil_goombas = new_group(evil_goomba)
     g_koopas=new_group(g_koopa)
 
     char=init_char()
@@ -48,9 +44,8 @@ function _update()
         end
     elseif (state == 'e_turn') then
         state = 'e_anim'
-        goombas:update()
-        evil_goombas:update()
-        g_koopas:update()
+        goombas:turn()
+        g_koopas:turn()
     elseif (state == 'e_anim') then
         if (anim_time >= 1) then
             anim_time = 0
@@ -61,6 +56,8 @@ function _update()
     end
 
     char:update()
+    goombas:update()
+    g_koopas:update()
    
     for d in all(dust) do
         d:update()
@@ -84,7 +81,6 @@ function _draw()
     -- todo: generic enemy management
     goombas:draw()
     g_koopas:draw()
-    evil_goombas:draw()
    
     for d in all(dust) do
         d:draw()

@@ -124,13 +124,6 @@ function check_space(_char)
     -- exit
     if (space.flag == 7) then
         level += 1
-        -- todo: refactor this
-        for g in all(goombas._) do
-            del(goombas._, g)
-        end
-        for g in all(evil_goombas._) do
-            del(evil_goombas._, g)
-        end
         map = generate_map()
     end
 

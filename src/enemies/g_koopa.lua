@@ -15,11 +15,15 @@ g_koopa={
 
     update=function(self)
         -- generic animation code
-        self.spri = (self.spri + 1) % 16
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        self.s = anim[transformed_spri]
+        if (t%8 == 0) then
+            self.spri = (self.spri + 1) % 16
+            local anim = self.animations[self.state]
+            local transformed_spri = (self.spri % #anim) + 1
+            self.s = anim[transformed_spri]
+        end
+    end,
 
+    turn=function(self)
         local new_x = self.x + self.dir 
 
         -- check to see if it hits player
