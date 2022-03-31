@@ -197,7 +197,8 @@ function generate_map()
     _map[start_c[y]][start_c[x]] = start
     _map[exit_c[y]][exit_c[x]] = exit_door
     place_item(_map, key_c[y], key_c[x], key)
-    -- todo: add proper chest generation
+
+    -- roll chest
     _map[room1_c[y]][room1_c[x]] = place_chest()
 
     -- place enemies

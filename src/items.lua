@@ -98,7 +98,6 @@ red_coin = {
 }
 
 function roll_random_item()
-    -- todo: use chest pools instead
     local r = rnd()
     if (r > 0.7) then
         return shovel
