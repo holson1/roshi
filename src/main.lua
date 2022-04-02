@@ -14,6 +14,7 @@ function _init()
        
     goombas=new_group(goomba)
     g_koopas=new_group(g_koopa)
+    r_koopas=new_group(r_koopa)
 
     char=init_char()
     levels=roll_levels()
@@ -46,6 +47,7 @@ function _update()
         state = 'e_anim'
         goombas:turn()
         g_koopas:turn()
+        r_koopas:turn()
     elseif (state == 'e_anim') then
         if (anim_time >= 1) then
             anim_time = 0
@@ -58,6 +60,7 @@ function _update()
     char:update()
     goombas:update()
     g_koopas:update()
+    r_koopas:update()
    
     for d in all(dust) do
         d:update()
@@ -81,6 +84,7 @@ function _draw()
     -- todo: generic enemy management
     goombas:draw()
     g_koopas:draw()
+    r_koopas:draw()
    
     for d in all(dust) do
         d:draw()

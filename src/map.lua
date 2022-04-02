@@ -82,7 +82,11 @@ function place_enemies(rooms)
 
     for room in all(rooms) do
         goombas:new({x=room[2],y=room[1]})
-        g_koopas:new({x=room[2],y=room[1]})
+        if (rnd() > 0.5) then
+            g_koopas:new({x=room[2],y=room[1]})
+        else
+            r_koopas:new({x=room[2],y=room[2]})
+        end
     end
 end
 
