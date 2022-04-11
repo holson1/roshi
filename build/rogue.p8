@@ -6,7 +6,7 @@ __lua__
 
 function init_hud()
     local hud = {
-        items={inspect, tongue, egg},
+        items={tongue, egg, jump_boots},
         selected_item=1,
         msg1="welcome to roshi's dungeon",
         msg2='find the key',
@@ -17,7 +17,7 @@ function init_hud()
             self.msg1 = m1
             self.msg2 = m2
         end,
-        
+
         clear_msg = function(self)
             self.msg1 = ''
             self.msg2 = ''
@@ -45,15 +45,19 @@ function init_hud()
                     return i
                 end
             end
-            return nil 
+            return nil
         end,
 
-        use_selected_item = function(self)
-            local this_item = self.items[self.selected_item]
+        get_selected_item = function(self)
+            return self.items[self.selected_item]
+        end,
 
-            sfx(this_item.sfx) 
-            this_item.use(this_item)
-    
+        use_selected_item = function(self, radians)
+            local this_item = self:get_selected_item()
+
+            sfx(this_item.sfx)
+            this_item.use(this_item, radians)
+
             -- catch error w/ using last item
             if (self.selected_item > #self.items) then
                 self.selected_item = #self.items
@@ -65,8 +69,9 @@ function init_hud()
             if (self.selected_item == 0) then
                 self.selected_item = #self.items
             end
-    
-            self:set_msg(self.items[self.selected_item]['name'],self.items[self.selected_item]['desc'])
+
+            local this_item = self:get_selected_item()
+            self:set_msg(this_item['name'],this_item['desc'])
         end,
 
         update = function(self)
@@ -242,18 +247,11 @@ hyper_specs = {
     end
 }
 
-inspect = {
-    spr=034,
-    name='inspect',
-    desc='look around',
-    use=function()
-    end
-}
-
 tongue = {
     spr=033,
     name='tongue',
     desc='grab things 2 tiles away',
+    can_aim=true,
     use=function()
     end
 }
@@ -262,6 +260,7 @@ egg = {
     spr=032,
     name='egg',
     desc='throw at enemies',
+    can_aim=true,
     _count=2,
     count=2,
     sfx=006,
@@ -274,8 +273,13 @@ jump_boots = {
     spr=041,
     name='jump boots',
     desc='used in plyometric training',
+    can_aim=true,
     sfx=006,
-    use=function()
+    use=function(self, radians)
+        local new_x = char.x + (cos(radians) * 2)
+        local new_y = char.y + (sin(radians) * 2)
+        
+        char:update_position(new_y, new_x)
     end
 }
 
@@ -317,50 +321,85 @@ end
 --src/controller.lua
 -- game controller
 
-function handle_input()
-    local did_move = true
-    local did_act = true
+controller = {
+    state='move',
+    handle_input = function(self)
+        local did_act = false
+        if (self.state == 'move') then
+            did_act = self:handle_move()
+        elseif (self.state == 'aim') then
+            did_act = self:handle_aim()
+        end
 
-    if (btnp(0)) then
-        -- LEFT
-        char:update_position(char.y, char.x - 1)
-        char.flip = true
-    elseif (btnp(1)) then
-        -- RIGHT
-        char:update_position(char.y, char.x + 1)
-        char.flip = false
-    elseif (btnp(2)) then
-        -- UP
-        char:update_position(char.y - 1, char.x)
-    elseif (btnp(3)) then
-        -- DOWN
-        char:update_position(char.y + 1, char.x)
-    else
-        did_move = false
+        if (did_act) then
+            char.action_taken = true
+            hud:clear_msg()
+        end
+    end,
 
-        if (btnp(4)) then
+    handle_move = function(self)
+        if (btnp(0)) then
+            -- LEFT
+            char:update_position(char.y, char.x - 1)
+            char.flip = true
+            return true
+        elseif (btnp(1)) then
+            -- RIGHT
+            char:update_position(char.y, char.x + 1)
+            char.flip = false
+            return true
+        elseif (btnp(2)) then
+            -- UP
+            char:update_position(char.y - 1, char.x)
+            return true
+        elseif (btnp(3)) then
+            -- DOWN
+            char:update_position(char.y + 1, char.x)
+            return true
+        elseif (btnp(4)) then
             -- USE ITEM (Z)
-            hud:use_selected_item()
+            local this_item = hud:get_selected_item()
+            if (this_item.can_aim) then
+                self.state = 'aim'
+            else
+                hud:use_selected_item()
+                return true
+            end
         elseif (btnp(5)) then
             -- ROTATE ITEM (X)
+            hud:rotate_selected_item()
+        end
+        return false
+    end,
+
+    handle_aim = function(self)
+        local did_act = true
+        local _state = 'move'
+
+        if (btnp(0)) then
+            -- LEFT
+            hud:use_selected_item(0.5)
+        elseif (btnp(1)) then
+            -- RIGHT
+            hud:use_selected_item(0)
+        elseif (btnp(2)) then
+            -- UP
+            hud:use_selected_item(0.25)
+        elseif (btnp(3)) then
+            -- DOWN
+            hud:use_selected_item(0.75)
+        elseif (btnp(5)) then
             hud:rotate_selected_item()
             did_act = false
         else
             did_act = false
-            -- no button pressed
+            _state = 'aim'
         end
-    end
 
-    if (did_move) then
-        char.idle_counter = 0
-        char.state = 'walk'
+        self.state = _state
+        return did_act
     end
-
-    if (did_act) then
-        char.action_taken = true
-        hud:clear_msg()
-    end
-end
+}
 -->8
 --src/main.lua
 -- rogue
@@ -373,10 +412,10 @@ function _init()
     cam.y = 0
     msg=''
     level=1
-   
+
     -- thanks doc_robs!
     dust={}
-       
+
     goombas=new_group(goomba)
     g_koopas=new_group(g_koopa)
     r_koopas=new_group(r_koopa)
@@ -388,13 +427,13 @@ function _init()
     state='p_turn'
     anim_time=0
 end
-   
+
 function _update()
     pal()
     t=(t+1)%128
 
     if (state == 'p_turn') then
-        handle_input()
+        controller:handle_input()
         char:turn()
         if (char.action_taken) then
             state = 'p_anim'
@@ -426,7 +465,7 @@ function _update()
     goombas:update()
     g_koopas:update()
     r_koopas:update()
-   
+
     for d in all(dust) do
         d:update()
     end
@@ -435,7 +474,7 @@ function _update()
     cam.x = max(char.x - 8, 0)
     cam.y = max(char.y - 8, 0)
 end
-   
+
 function _draw()
     cls()
     camera(cam.x * 8, cam.y * 8)
@@ -450,11 +489,11 @@ function _draw()
     goombas:draw()
     g_koopas:draw()
     r_koopas:draw()
-   
+
     for d in all(dust) do
         d:draw()
     end
-      
+
     -- debug()
 end
 -->8

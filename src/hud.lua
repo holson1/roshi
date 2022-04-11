@@ -2,7 +2,7 @@
 
 function init_hud()
     local hud = {
-        items={inspect, tongue, egg},
+        items={tongue, egg, jump_boots},
         selected_item=1,
         msg1="welcome to roshi's dungeon",
         msg2='find the key',
@@ -13,7 +13,7 @@ function init_hud()
             self.msg1 = m1
             self.msg2 = m2
         end,
-        
+
         clear_msg = function(self)
             self.msg1 = ''
             self.msg2 = ''
@@ -41,15 +41,19 @@ function init_hud()
                     return i
                 end
             end
-            return nil 
+            return nil
         end,
 
-        use_selected_item = function(self)
-            local this_item = self.items[self.selected_item]
+        get_selected_item = function(self)
+            return self.items[self.selected_item]
+        end,
 
-            sfx(this_item.sfx) 
-            this_item.use(this_item)
-    
+        use_selected_item = function(self, radians)
+            local this_item = self:get_selected_item()
+
+            sfx(this_item.sfx)
+            this_item.use(this_item, radians)
+
             -- catch error w/ using last item
             if (self.selected_item > #self.items) then
                 self.selected_item = #self.items
@@ -61,8 +65,9 @@ function init_hud()
             if (self.selected_item == 0) then
                 self.selected_item = #self.items
             end
-    
-            self:set_msg(self.items[self.selected_item]['name'],self.items[self.selected_item]['desc'])
+
+            local this_item = self:get_selected_item()
+            self:set_msg(this_item['name'],this_item['desc'])
         end,
 
         update = function(self)

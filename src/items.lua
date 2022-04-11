@@ -38,18 +38,11 @@ hyper_specs = {
     end
 }
 
-inspect = {
-    spr=034,
-    name='inspect',
-    desc='look around',
-    use=function()
-    end
-}
-
 tongue = {
     spr=033,
     name='tongue',
     desc='grab things 2 tiles away',
+    can_aim=true,
     use=function()
     end
 }
@@ -58,6 +51,7 @@ egg = {
     spr=032,
     name='egg',
     desc='throw at enemies',
+    can_aim=true,
     _count=2,
     count=2,
     sfx=006,
@@ -70,8 +64,13 @@ jump_boots = {
     spr=041,
     name='jump boots',
     desc='used in plyometric training',
+    can_aim=true,
     sfx=006,
-    use=function()
+    use=function(self, radians)
+        local new_x = char.x + (cos(radians) * 2)
+        local new_y = char.y + (sin(radians) * 2)
+        
+        char:update_position(new_y, new_x)
     end
 }
 

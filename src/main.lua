@@ -8,10 +8,10 @@ function _init()
     cam.y = 0
     msg=''
     level=1
-   
+
     -- thanks doc_robs!
     dust={}
-       
+
     goombas=new_group(goomba)
     g_koopas=new_group(g_koopa)
     r_koopas=new_group(r_koopa)
@@ -23,13 +23,13 @@ function _init()
     state='p_turn'
     anim_time=0
 end
-   
+
 function _update()
     pal()
     t=(t+1)%128
 
     if (state == 'p_turn') then
-        handle_input()
+        controller:handle_input()
         char:turn()
         if (char.action_taken) then
             state = 'p_anim'
@@ -61,7 +61,7 @@ function _update()
     goombas:update()
     g_koopas:update()
     r_koopas:update()
-   
+
     for d in all(dust) do
         d:update()
     end
@@ -70,7 +70,7 @@ function _update()
     cam.x = max(char.x - 8, 0)
     cam.y = max(char.y - 8, 0)
 end
-   
+
 function _draw()
     cls()
     camera(cam.x * 8, cam.y * 8)
@@ -85,10 +85,10 @@ function _draw()
     goombas:draw()
     g_koopas:draw()
     r_koopas:draw()
-   
+
     for d in all(dust) do
         d:draw()
     end
-      
+
     -- debug()
 end
