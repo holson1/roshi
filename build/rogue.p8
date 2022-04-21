@@ -265,6 +265,7 @@ egg = {
     count=2,
     sfx=006,
     use=function(self)
+        animations:new(char_throw)
         handle_count(self)
     end
 }
@@ -425,7 +426,7 @@ function _init()
     map=generate_map()
     hud=init_hud()
     state='p_turn'
-    anim_time=0
+    anim_time=1
 end
 
 function _update()
@@ -437,24 +438,27 @@ function _update()
         char:turn()
         if (char.action_taken) then
             state = 'p_anim'
+            char.action_taken = false
         end
     elseif (state == 'p_anim') then
-        char.action_taken = false
-
-        if (anim_time >= 1) then
-            anim_time = 0
-            state = 'e_turn'
-        else
-            anim_time += 1
+        if (t % 2 == 0) then
+            if (#animations._ > 0) then
+                animations:update(anim_time)
+                anim_time += 1
+            else
+                char.spr = 1
+                state = 'e_turn'
+                anim_time = 1
+            end
         end
     elseif (state == 'e_turn') then
-        state = 'e_anim'
         goombas:turn()
         g_koopas:turn()
         r_koopas:turn()
+        state = 'e_anim'
     elseif (state == 'e_anim') then
         if (anim_time >= 1) then
-            anim_time = 0
+            anim_time = 1
             state = 'p_turn'
         else
             anim_time += 1
@@ -726,8 +730,11 @@ function generate_map()
 end
 
 function draw_map(_map)
-    for i=max(1, char.x-VISION_RADIUS), min(char.x+VISION_RADIUS, MAP_SIZE) do
-        for j=max(1, char.y-VISION_RADIUS), min(char.y+VISION_RADIUS, MAP_SIZE) do
+    local x = flr(char.x)
+    local y = flr(char.y)
+
+    for i=max(1, x-VISION_RADIUS), min(x+VISION_RADIUS, MAP_SIZE) do
+        for j=max(1, y-VISION_RADIUS), min(y+VISION_RADIUS, MAP_SIZE) do
             spr(_map[j][i].spr, i*8, j*8)
         end
     end
@@ -780,6 +787,63 @@ shot={
         self.y+=self.dy	
     end
 }
+-->8
+--src/animations.lua
+animations = {
+    _ = {},
+    new=function(self, animation)
+        local anim_copy = {}
+        for k,v in pairs(animation) do
+            anim_copy[k]=v
+        end
+        anim_copy.active = true
+        add(self._, anim_copy)
+    end,
+
+    update=function(self, anim_time)
+        for i,v in ipairs(self._) do
+            v:update(anim_time)
+            if v.active==false then
+                del(self._,self._[i])
+            end
+        end
+    end,
+
+    draw=function(self)
+        for v in all(self._) do
+            spr(v.s,v.x*8,v.y*8,1,1,v.flip)
+        end
+    end
+}
+
+char_throw = {
+    a={5,6,7,8},
+    update=function(self,anim_time)
+        if (anim_time > #self.a) then
+            self.active = false
+            return
+        end
+        char.spr = self.a[anim_time]
+    end,
+}
+
+char_move = function(ydiff, xdiff)
+    return {
+        a={4},
+        ydiff=ydiff,
+        xdiff=xdiff, 
+        update=function(self,anim_time)
+            if (anim_time > #self.a) then
+                self.active = false
+                return
+            end
+            char.spr = self.a[anim_time]
+
+            char.x += (self.xdiff / #self.a)
+            char.y += (self.ydiff / #self.a)
+        end,
+    }
+end
 -->8
 --src/lib/group.lua
 function new_group(bp)
@@ -844,6 +908,14 @@ end
 function in_bounds(a,b)
     return a > 0 and a < MAP_SIZE + 1 and b > 0 and b < MAP_SIZE + 1
 end
+
+function round(x)
+    if ((x - flr(x)) >= 0.5) then
+        return ceil(x)
+    else
+        return flr(x)
+    end
+end
 -->8
 --src/log.lua
 _log={}
@@ -890,21 +962,6 @@ function init_char()
         max_health=5,
         health=3,
         action_taken=false,
-
-        states={
-            'base',
-            'idle'
-        },
-
-        animations={
-            base={1},
-            idle={1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,2,2,2,2,1,1,1,1,1,1,1,1,1},
-            walk={5,4,4}
-        },
-
-        get_animation=function(self)
-            return self.animations[self.state]
-        end,
         collide=collide,
         update_position=update_position,
         turn=char_turn,
@@ -948,6 +1005,8 @@ function collide(_char, space, y, x)
 end
 
 function char_turn(_char)
+    _char.x = round(_char.x)
+    _char.y = round(_char.y)
     check_space(_char)
 end
 
@@ -970,30 +1029,20 @@ function update_char(_char)
         _char.state = 'base'
         _char.move_counter = 0
     end
-
-    -- todo: proper animation timing system
-    if (_char.spr ~= 'base' and t%4 == 0) then
-        _char.spri = (_char.spri + 1) % 32
-        set_spr(_char)
-    end
 end
 
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
-            _char.x = _x
-            _char.y = _y
+            -- _char.x = _x
+            -- _char.y = _y
+            local xdiff = _x - char.x
+            local ydiff = _y - char.y
+            animations:new(char_move(ydiff, xdiff))
         else
             _char:collide(map[_y][_x], _y, _x)
         end
     end
-end
-
-function set_spr(_char)
-    local anim = _char:get_animation()
-    local transformed_spri = (_char.spri % #anim) + 1
-    
-    _char.spr = anim[transformed_spri]
 end
 
 function check_space(_char)

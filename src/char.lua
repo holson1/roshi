@@ -12,21 +12,6 @@ function init_char()
         max_health=5,
         health=3,
         action_taken=false,
-
-        states={
-            'base',
-            'idle'
-        },
-
-        animations={
-            base={1},
-            idle={1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,2,2,2,2,1,1,1,1,1,1,1,1,1},
-            walk={5,4,4}
-        },
-
-        get_animation=function(self)
-            return self.animations[self.state]
-        end,
         collide=collide,
         update_position=update_position,
         turn=char_turn,
@@ -70,6 +55,8 @@ function collide(_char, space, y, x)
 end
 
 function char_turn(_char)
+    _char.x = round(_char.x)
+    _char.y = round(_char.y)
     check_space(_char)
 end
 
@@ -92,30 +79,20 @@ function update_char(_char)
         _char.state = 'base'
         _char.move_counter = 0
     end
-
-    -- todo: proper animation timing system
-    if (_char.spr ~= 'base' and t%4 == 0) then
-        _char.spri = (_char.spri + 1) % 32
-        set_spr(_char)
-    end
 end
 
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
-            _char.x = _x
-            _char.y = _y
+            -- _char.x = _x
+            -- _char.y = _y
+            local xdiff = _x - char.x
+            local ydiff = _y - char.y
+            animations:new(char_move(ydiff, xdiff))
         else
             _char:collide(map[_y][_x], _y, _x)
         end
     end
-end
-
-function set_spr(_char)
-    local anim = _char:get_animation()
-    local transformed_spri = (_char.spri % #anim) + 1
-    
-    _char.spr = anim[transformed_spri]
 end
 
 function check_space(_char)

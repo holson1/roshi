@@ -21,7 +21,7 @@ function _init()
     map=generate_map()
     hud=init_hud()
     state='p_turn'
-    anim_time=0
+    anim_time=1
 end
 
 function _update()
@@ -33,24 +33,27 @@ function _update()
         char:turn()
         if (char.action_taken) then
             state = 'p_anim'
+            char.action_taken = false
         end
     elseif (state == 'p_anim') then
-        char.action_taken = false
-
-        if (anim_time >= 1) then
-            anim_time = 0
-            state = 'e_turn'
-        else
-            anim_time += 1
+        if (t % 2 == 0) then
+            if (#animations._ > 0) then
+                animations:update(anim_time)
+                anim_time += 1
+            else
+                char.spr = 1
+                state = 'e_turn'
+                anim_time = 1
+            end
         end
     elseif (state == 'e_turn') then
-        state = 'e_anim'
         goombas:turn()
         g_koopas:turn()
         r_koopas:turn()
+        state = 'e_anim'
     elseif (state == 'e_anim') then
         if (anim_time >= 1) then
-            anim_time = 0
+            anim_time = 1
             state = 'p_turn'
         else
             anim_time += 1

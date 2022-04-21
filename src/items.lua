@@ -56,6 +56,7 @@ egg = {
     count=2,
     sfx=006,
     use=function(self)
+        animations:new(char_throw)
         handle_count(self)
     end
 }

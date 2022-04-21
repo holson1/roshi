@@ -226,8 +226,11 @@ function generate_map()
 end
 
 function draw_map(_map)
-    for i=max(1, char.x-VISION_RADIUS), min(char.x+VISION_RADIUS, MAP_SIZE) do
-        for j=max(1, char.y-VISION_RADIUS), min(char.y+VISION_RADIUS, MAP_SIZE) do
+    local x = flr(char.x)
+    local y = flr(char.y)
+
+    for i=max(1, x-VISION_RADIUS), min(x+VISION_RADIUS, MAP_SIZE) do
+        for j=max(1, y-VISION_RADIUS), min(y+VISION_RADIUS, MAP_SIZE) do
             spr(_map[j][i].spr, i*8, j*8)
         end
     end
