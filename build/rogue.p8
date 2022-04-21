@@ -435,12 +435,13 @@ function _update()
 
     if (state == 'p_turn') then
         controller:handle_input()
-        char:turn()
         if (char.action_taken) then
             state = 'p_anim'
             char.action_taken = false
         end
-    elseif (state == 'p_anim') then
+    end
+
+    if (state == 'p_anim') then
         if (#animations._ > 0) then
             animations:update(anim_time)
             anim_time += 1
@@ -449,17 +450,24 @@ function _update()
             state = 'e_turn'
             anim_time = 1
         end
-    elseif (state == 'e_turn') then
+    end
+
+    if (state == 'e_turn') then
+        char:check_space()
+
         goombas:turn()
         g_koopas:turn()
         r_koopas:turn()
         state = 'e_anim'
-    elseif (state == 'e_anim') then
-        if (anim_time >= 1) then
-            anim_time = 1
-            state = 'p_turn'
-        else
+    end
+
+    if (state == 'e_anim') then
+        if (#animations._ > 0) then
+            animations:update(anim_time)
             anim_time += 1
+        else
+            state = 'p_turn'
+            anim_time = 1
         end
     end
 
@@ -827,12 +835,14 @@ char_throw = {
 
 char_move = function(ydiff, xdiff)
     return {
-        a={4,4},
+        a={4,4,4},
         ydiff=ydiff,
         xdiff=xdiff, 
         update=function(self,anim_time)
             if (anim_time > #self.a) then
                 self.active = false
+                char.x = round(char.x)
+                char.y = round(char.y)
                 return
             end
             char.spr = self.a[anim_time]
@@ -962,7 +972,7 @@ function init_char()
         action_taken=false,
         collide=collide,
         update_position=update_position,
-        turn=char_turn,
+        check_space=check_space,
         update=update_char,
 
         -- all game logic should be implemented in cells, only draw functions care about px
@@ -1000,12 +1010,6 @@ function collide(_char, space, y, x)
     if (actions[space.id]) then
         actions[space.id](y, x, space)
     end
-end
-
-function char_turn(_char)
-    _char.x = round(_char.x)
-    _char.y = round(_char.y)
-    check_space(_char)
 end
 
 function update_char(_char)

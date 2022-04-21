@@ -30,12 +30,13 @@ function _update()
 
     if (state == 'p_turn') then
         controller:handle_input()
-        char:turn()
         if (char.action_taken) then
             state = 'p_anim'
             char.action_taken = false
         end
-    elseif (state == 'p_anim') then
+    end
+
+    if (state == 'p_anim') then
         if (#animations._ > 0) then
             animations:update(anim_time)
             anim_time += 1
@@ -44,17 +45,24 @@ function _update()
             state = 'e_turn'
             anim_time = 1
         end
-    elseif (state == 'e_turn') then
+    end
+
+    if (state == 'e_turn') then
+        char:check_space()
+
         goombas:turn()
         g_koopas:turn()
         r_koopas:turn()
         state = 'e_anim'
-    elseif (state == 'e_anim') then
-        if (anim_time >= 1) then
-            anim_time = 1
-            state = 'p_turn'
-        else
+    end
+
+    if (state == 'e_anim') then
+        if (#animations._ > 0) then
+            animations:update(anim_time)
             anim_time += 1
+        else
+            state = 'p_turn'
+            anim_time = 1
         end
     end
 

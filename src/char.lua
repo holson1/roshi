@@ -14,7 +14,7 @@ function init_char()
         action_taken=false,
         collide=collide,
         update_position=update_position,
-        turn=char_turn,
+        check_space=check_space,
         update=update_char,
 
         -- all game logic should be implemented in cells, only draw functions care about px
@@ -52,12 +52,6 @@ function collide(_char, space, y, x)
     if (actions[space.id]) then
         actions[space.id](y, x, space)
     end
-end
-
-function char_turn(_char)
-    _char.x = round(_char.x)
-    _char.y = round(_char.y)
-    check_space(_char)
 end
 
 function update_char(_char)

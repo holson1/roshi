@@ -38,12 +38,14 @@ char_throw = {
 
 char_move = function(ydiff, xdiff)
     return {
-        a={4,4},
+        a={4,4,4},
         ydiff=ydiff,
         xdiff=xdiff, 
         update=function(self,anim_time)
             if (anim_time > #self.a) then
                 self.active = false
+                char.x = round(char.x)
+                char.y = round(char.y)
                 return
             end
             char.spr = self.a[anim_time]
