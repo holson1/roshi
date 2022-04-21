@@ -36,15 +36,13 @@ function _update()
             char.action_taken = false
         end
     elseif (state == 'p_anim') then
-        if (t % 2 == 0) then
-            if (#animations._ > 0) then
-                animations:update(anim_time)
-                anim_time += 1
-            else
-                char.spr = 1
-                state = 'e_turn'
-                anim_time = 1
-            end
+        if (#animations._ > 0) then
+            animations:update(anim_time)
+            anim_time += 1
+        else
+            char.spr = 1
+            state = 'e_turn'
+            anim_time = 1
         end
     elseif (state == 'e_turn') then
         goombas:turn()

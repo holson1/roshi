@@ -26,7 +26,7 @@ animations = {
 }
 
 char_throw = {
-    a={5,6,7,8},
+    a={5,5,6,7,8,8},
     update=function(self,anim_time)
         if (anim_time > #self.a) then
             self.active = false
@@ -38,7 +38,7 @@ char_throw = {
 
 char_move = function(ydiff, xdiff)
     return {
-        a={4},
+        a={4,4},
         ydiff=ydiff,
         xdiff=xdiff, 
         update=function(self,anim_time)
