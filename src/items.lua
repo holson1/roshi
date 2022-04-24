@@ -52,8 +52,8 @@ egg = {
     name='egg',
     desc='throw at enemies',
     can_aim=true,
-    _count=2,
-    count=2,
+    _count=9,
+    count=9,
     sfx=006,
     use=function(self, dir)
         animations:new(char_throw)

@@ -95,11 +95,11 @@ function _draw()
     g_koopas:draw()
     r_koopas:draw()
 
-    animations:draw()
 
     for d in all(dust) do
         d:draw()
     end
 
+    animations:draw()
     -- debug()
 end

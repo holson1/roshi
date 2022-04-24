@@ -60,21 +60,23 @@ end
 
 egg_throw = function(dir)
     return {
-        s=58,
+        s=32,
         x=char.x,
         y=char.y,
         update=function(self,anim_time)
+            add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 6, 3, 0, 7)
             self.x += cos(dir)
             self.y += sin(dir)
 
-            if (anim_time > 16) then
+            if (in_bounds(self.y,self.x)) then
+                if (map[self.y][self.x].flag == 1) then
+                    self.active = false
+                    animations:new(egg_break(self.x, self.y))
+                    add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 2, 4, 0, 7)
+                    sfx(2)
+                end
+            else
                 self.active = false
-            end
-
-            if (map[self.y][self.x].flag == 1) then
-                self.active = false
-                animations:new(egg_break(self.x, self.y))
-                sfx(2)
             end
         end,
     }
@@ -82,10 +84,10 @@ end
 
 egg_break = function(_x,_y)
     return {
-        s=58,
+        s=32,
         x=_x,
         y=_y,
-        a={59,59,60,60,61,61,62,62},
+        a={59,60,60,61,61,62,62},
         update=function(self,anim_time)
             if (anim_time > #self.a) then
                 self.active = false

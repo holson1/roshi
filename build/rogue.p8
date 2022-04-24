@@ -261,8 +261,8 @@ egg = {
     name='egg',
     desc='throw at enemies',
     can_aim=true,
-    _count=2,
-    count=2,
+    _count=9,
+    count=9,
     sfx=006,
     use=function(self, dir)
         animations:new(char_throw)
@@ -503,12 +503,12 @@ function _draw()
     g_koopas:draw()
     r_koopas:draw()
 
-    animations:draw()
 
     for d in all(dust) do
         d:draw()
     end
 
+    animations:draw()
     -- debug()
 end
 -->8
@@ -819,21 +819,23 @@ end
 
 egg_throw = function(dir)
     return {
-        s=58,
+        s=32,
         x=char.x,
         y=char.y,
         update=function(self,anim_time)
+            add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 6, 3, 0, 7)
             self.x += cos(dir)
             self.y += sin(dir)
 
-            if (anim_time > 16) then
+            if (in_bounds(self.y,self.x)) then
+                if (map[self.y][self.x].flag == 1) then
+                    self.active = false
+                    animations:new(egg_break(self.x, self.y))
+                    add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 2, 4, 0, 7)
+                    sfx(2)
+                end
+            else
                 self.active = false
-            end
-
-            if (map[self.y][self.x].flag == 1) then
-                self.active = false
-                animations:new(egg_break(self.x, self.y))
-                sfx(2)
             end
         end,
     }
@@ -841,10 +843,10 @@ end
 
 egg_break = function(_x,_y)
     return {
-        s=58,
+        s=32,
         x=_x,
         y=_y,
-        a={59,59,60,60,61,61,62,62},
+        a={59,60,60,61,61,62,62},
         update=function(self,anim_time)
             if (anim_time > #self.a) then
                 self.active = false
@@ -897,8 +899,8 @@ end
 --src/lib/dust.lua
 function add_new_dust(_x,_y,_dx,_dy,_l,_s,_g,_f)
     add(dust, {
-    fade=_f,x=_x,y=_y,dx=_dx,dy=_dy,life=_l,orig_life=_l,rad=_s,col=0,grav=_g,draw=function(self)
-    pal()palt()circfill(self.x,self.y,self.rad,self.col)
+    fade=_f,x=_x,y=_y,dx=_dx,dy=_dy,life=_l,orig_life=_l,rad=_s,col=8,grav=_g,draw=function(self)
+    pal()palt()circfill(self.x * 8,self.y * 8,self.rad,self.col)
     end,update=function(self)
     self.x+=self.dx self.y+=self.dy
     self.dy+=self.grav self.rad*=0.9 self.life-=1
@@ -1350,7 +1352,7 @@ aa0000aa000000000000000000000000060000600600006000000000909904404444445500111100
 77777b36c00ee00000777700500001007777782600f33fff00fdc1ff0077773f0066d0000e8822200055100060dd100000221000000000000000000000000000
 0777b3300000ee0000000000010110000777822000ff3ff000ff1ff000f773f00066d000e8888220000000000000000000990000000000000000000000000000
 0076630000000ee000000000000000000076620000fff00000fff00000fff0000006000022222210000000000000000000010000000000000000000000000000
-07710177000000000011a7a000118e800011c7c05ffffff58888888805fffff50088881005fffff5000000000000000000000000007707006000000600000000
+07710177000000000011a7a000118e800011c7c05ffffff58888888805fffff50088881005fffff5000000000000000000000000007707006006000600000000
 077617760000000000117aa00011e88000117cc0088888880820082000ffffff0087681000ffffff000000000000000000777700066000600000000000000000
 11771761000110000117aa9a011e88280117cc1c0f8ff8ff0888282800ffffff0086781000f111ff000b70000007700007600670766006676050050600000000
 771aa700001dd1000117aa9a011e88280117cc1c0888f8f88208288000ffffff008778100011111f00b777000077770007060070760550670000000000000000
