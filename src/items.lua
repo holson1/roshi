@@ -55,8 +55,9 @@ egg = {
     _count=2,
     count=2,
     sfx=006,
-    use=function(self)
+    use=function(self, dir)
         animations:new(char_throw)
+        animations:new(egg_throw(dir))
         handle_count(self)
     end
 }

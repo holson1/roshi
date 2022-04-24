@@ -57,9 +57,11 @@ controller = {
 
         if (btnp(0)) then
             -- LEFT
+            char.flip = true
             hud:use_selected_item(0.5)
         elseif (btnp(1)) then
             -- RIGHT
+            char.flip = false
             hud:use_selected_item(0)
         elseif (btnp(2)) then
             -- UP

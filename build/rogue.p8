@@ -264,8 +264,9 @@ egg = {
     _count=2,
     count=2,
     sfx=006,
-    use=function(self)
+    use=function(self, dir)
         animations:new(char_throw)
+        animations:new(egg_throw(dir))
         handle_count(self)
     end
 }
@@ -379,9 +380,11 @@ controller = {
 
         if (btnp(0)) then
             -- LEFT
+            char.flip = true
             hud:use_selected_item(0.5)
         elseif (btnp(1)) then
             -- RIGHT
+            char.flip = false
             hud:use_selected_item(0)
         elseif (btnp(2)) then
             -- UP
@@ -499,6 +502,8 @@ function _draw()
     goombas:draw()
     g_koopas:draw()
     r_koopas:draw()
+
+    animations:draw()
 
     for d in all(dust) do
         d:draw()
@@ -751,49 +756,6 @@ function draw_map(_map)
     end
 end
 -->8
---src/objects/boom.lua
-boom={
-    s=008,
-    w=8,
-    h=8,
-    x=nil,
-    y=nil,
-
-    update=function(self)
-            self.s+=1
-            if(self.s>11) self.alive=false
-    end
-}
--->8
---src/objects/shot.lua
-shot={
-    w=4,
-    h=4,
-    s=195,
-    x=nil,
-    y=nil,
-    dx=nil,
-    dy=nil,
-    d=nil,
-
-    update=function(self)
-        -- destroy on OOB
-        if self.x < cam.x
-            or self.x > cam.x + 128
-            or self.y < cam.y
-            or self.y > cam.y + 128 then
-                self.alive = false
-        end
-  
-        if t%2 == 0 then
-            add_new_dust(self.x + self.w, self.y + self.h, self.dx/2, self.dy/2, 9, rnd(3), 0, 15)
-        end
-   
-        self.x+=self.dx
-        self.y+=self.dy	
-    end
-}
--->8
 --src/animations.lua
 animations = {
     _ = {},
@@ -817,7 +779,9 @@ animations = {
 
     draw=function(self)
         for v in all(self._) do
-            spr(v.s,v.x*8,v.y*8,1,1,v.flip)
+            if (v.s ~= nil) then
+                spr(v.s,v.x*8,v.y*8,1,1,v.flip)
+            end
         end
     end
 }
@@ -835,7 +799,7 @@ char_throw = {
 
 char_move = function(ydiff, xdiff)
     return {
-        a={4,4,4},
+        a={4,4,4,4},
         ydiff=ydiff,
         xdiff=xdiff, 
         update=function(self,anim_time)
@@ -850,6 +814,44 @@ char_move = function(ydiff, xdiff)
             char.x += (self.xdiff / #self.a)
             char.y += (self.ydiff / #self.a)
         end,
+    }
+end
+
+egg_throw = function(dir)
+    return {
+        s=58,
+        x=char.x,
+        y=char.y,
+        update=function(self,anim_time)
+            self.x += cos(dir)
+            self.y += sin(dir)
+
+            if (anim_time > 16) then
+                self.active = false
+            end
+
+            if (map[self.y][self.x].flag == 1) then
+                self.active = false
+                animations:new(egg_break(self.x, self.y))
+                sfx(2)
+            end
+        end,
+    }
+end
+
+egg_break = function(_x,_y)
+    return {
+        s=58,
+        x=_x,
+        y=_y,
+        a={59,59,60,60,61,61,62,62},
+        update=function(self,anim_time)
+            if (anim_time > #self.a) then
+                self.active = false
+                return
+            end
+            self.s = self.a[anim_time]
+        end
     }
 end
 -->8
@@ -1036,8 +1038,6 @@ end
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
-            -- _char.x = _x
-            -- _char.y = _y
             local xdiff = _x - char.x
             local ydiff = _y - char.y
             animations:new(char_move(ydiff, xdiff))
@@ -1350,14 +1350,14 @@ aa0000aa000000000000000000000000060000600600006000000000909904404444445500111100
 77777b36c00ee00000777700500001007777782600f33fff00fdc1ff0077773f0066d0000e8822200055100060dd100000221000000000000000000000000000
 0777b3300000ee0000000000010110000777822000ff3ff000ff1ff000f773f00066d000e8888220000000000000000000990000000000000000000000000000
 0076630000000ee000000000000000000076620000fff00000fff00000fff0000006000022222210000000000000000000010000000000000000000000000000
-07710177000000000011a7a000118e800011c7c05ffffff58888888805fffff50088881005fffff5000000000000000000000000000000000000000000000000
-077617760000000000117aa00011e88000117cc0088888880820082000ffffff0087681000ffffff000000000000000000000000000000000000000000000000
-11771761000110000117aa9a011e88280117cc1c0f8ff8ff0888282800ffffff0086781000f111ff000000000000000000000000000000000000000000000000
-771aa700001dd1000117aa9a011e88280117cc1c0888f8f88208288000ffffff008778100011111f000000000000000000000000000000000000000000000000
-007aa166001dd100011aaa9a01188828011ccc1c0ff8f88f0008282000ffffff008668100018181f000000000000000000000000000000000000000000000000
-0771761100011000011aaa9a01188828011ccc1c08f8f8ff0828282000ffffff0086781000f111ff000000000000000000000000000000000000000000000000
-77617770000000000011a9a0001182800011c1c00f8ff8f80082082800fffff00087681000f111f0000000000000000000000000000000000000000000000000
-76101670000000000011aaa0001188800011ccc008ff08808820088800fff0000088881000ffff00000000000000000000000000000000000000000000000000
+07710177000000000011a7a000118e800011c7c05ffffff58888888805fffff50088881005fffff5000000000000000000000000007707006000000600000000
+077617760000000000117aa00011e88000117cc0088888880820082000ffffff0087681000ffffff000000000000000000777700066000600000000000000000
+11771761000110000117aa9a011e88280117cc1c0f8ff8ff0888282800ffffff0086781000f111ff000b70000007700007600670766006676050050600000000
+771aa700001dd1000117aa9a011e88280117cc1c0888f8f88208288000ffffff008778100011111f00b777000077770007060070760550670000000000000000
+007aa166001dd100011aaa9a01188828011ccc1c0ff8f88f0008282000ffffff008668100018181f0077bb000077770007006070000550006000000000000000
+0771761100011000011aaa9a01188828011ccc1c08f8f8ff0828282000ffffff0086781000f111ff0077bb000007700007600670706006670050050000000000
+77617770000000000011a9a0001182800011c1c00f8ff8f80082082800fffff00087681000f111f0001771000000000000777700060006600600000000000000
+76101670000000000011aaa0001188800011ccc008ff08808820088800fff0000088881000ffff00000000000000000000000000007707006000600600000000
 00b553000095580000655c0000000000000000000000000000b3300000b330000b000005f1005050000000000000000000000000000000000000000000000000
 0b1b3130092982800616c1c0000000000000000000000000088803000ddd0300030b00b0100001f1001000000000000000000000000000000000000000000000
 b31b3131982982826c16c1c100000000000000000000000087882300d7dd130000b00b3005050015000001000000000000000000000000000000000000000000

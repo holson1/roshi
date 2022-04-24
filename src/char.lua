@@ -78,8 +78,6 @@ end
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
-            -- _char.x = _x
-            -- _char.y = _y
             local xdiff = _x - char.x
             local ydiff = _y - char.y
             animations:new(char_move(ydiff, xdiff))
