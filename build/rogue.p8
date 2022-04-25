@@ -252,7 +252,8 @@ tongue = {
     name='tongue',
     desc='grab things 2 tiles away',
     can_aim=true,
-    use=function()
+    use=function(self,dir)
+        animations:new(tongue_lick(dir))
     end
 }
 
@@ -874,6 +875,29 @@ damage_num = function(_x, _y, dmg)
         end,
         draw=function(self)
             print(self.dmg, (self.x + 0.25) * 8, (self.y + 0.25) * 8, 8)
+        end
+    }
+end
+
+tongue_lick = function(dir)
+    return {
+        x=char.x,
+        y=char.y,
+        update=function(self,anim_time)
+            local delta = 0.5
+
+            if (anim_time > 8) then
+                self.active = false
+            elseif (anim_time > 4) then
+                delta = -0.4
+            end
+
+            self.x += cos(dir) * delta
+            self.y += sin(dir) * delta
+        end,
+        draw=function(self)
+            line((char.x + 0.5) * 8, (char.y + 0.5) * 8, (self.x + 0.5) * 8, (self.y + 0.5) * 8, 8)
+            char:draw()
         end
     }
 end

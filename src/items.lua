@@ -43,7 +43,8 @@ tongue = {
     name='tongue',
     desc='grab things 2 tiles away',
     can_aim=true,
-    use=function()
+    use=function(self,dir)
+        animations:new(tongue_lick(dir))
     end
 }
 
