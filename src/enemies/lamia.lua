@@ -1,25 +1,12 @@
 lamia={
     life=1,
     s=224,
-    x=4,
-    y=4,
-    state='idle',
+    x=nil,
+    y=nil,
+    w=2,
+    h=2,
     spri=0,
-
-    animations={
-        idle={224,224,234,234,234,224,224,224,226,228,230,232},
-    },
-
-    update=function(self)
-        -- generic animation code
-        if (t%3==0) then
-            self.spri = (self.spri + 1) % 16
-        end
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        
-        self.s = anim[transformed_spri]
-    end,
+    a={224,224,234,234,234,224,224,224,226,228,230,232},
 
     turn=function(self)
         local new_cell = nil
@@ -52,8 +39,4 @@ lamia={
         self.y = new_cell[1]
         self.x = new_cell[2]
     end,
-
-    draw=function(self)
-        spr(self.s,self.x*8,self.y*8,2,2)
-    end
 }

@@ -12,10 +12,6 @@ function _init()
     -- thanks doc_robs!
     dust={}
 
-    goombas=new_group(goomba)
-    g_koopas=new_group(g_koopa)
-    r_koopas=new_group(r_koopa)
-
     char=init_char()
     levels=roll_levels()
     map=generate_map()
@@ -50,9 +46,7 @@ function _update()
     if (state == 'e_turn') then
         char:check_space()
 
-        goombas:turn()
-        g_koopas:turn()
-        r_koopas:turn()
+        enemies:turn()
         state = 'e_anim'
     end
 
@@ -67,9 +61,7 @@ function _update()
     end
 
     char:update()
-    goombas:update()
-    g_koopas:update()
-    r_koopas:update()
+    enemies:update()
 
     for d in all(dust) do
         d:update()
@@ -90,16 +82,13 @@ function _draw()
 
     hud:draw()
 
-    -- todo: generic enemy management
-    goombas:draw()
-    g_koopas:draw()
-    r_koopas:draw()
-
+    enemies:draw()
 
     for d in all(dust) do
         d:draw()
     end
 
     animations:draw()
+
     -- debug()
 end

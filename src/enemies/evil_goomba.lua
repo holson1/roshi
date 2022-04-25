@@ -3,21 +3,10 @@ evil_goomba={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
+    a={131,132},
 
-    animations={
-        walk={131,132}
-    },
-
-    update=function(self)
-        -- generic animation code
-        self.spri = (self.spri + 1) % 16
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        
-        self.s = anim[transformed_spri]
-
+    turn=function(self)
         -- evil goombas track you
         local x_diff = char.x - self.x
         local y_diff = char.y - self.y

@@ -81,11 +81,11 @@ function place_enemies(rooms)
     -- this will really depend on level but _FOR NOW_ let's do the easy thing and gen a default number
 
     for room in all(rooms) do
-        goombas:new({x=room[2],y=room[1]})
+        enemies:new(goomba, {x=room[2],y=room[1]})
         if (rnd() > 0.5) then
-            g_koopas:new({x=room[2],y=room[1]})
+            enemies:new(g_koopa, {x=room[2],y=room[1]})
         else
-            r_koopas:new({x=room[2],y=room[2]})
+            enemies:new(r_koopa, {x=room[2],y=room[1]})
         end
     end
 end
@@ -155,11 +155,8 @@ function draw_room(_map, point)
 end
 
 function clear_map()
-    for g in all(goombas._) do
-        del(goombas._, g)
-    end
-    for g in all(g_koopas._) do
-        del(g_koopas._, g)
+    for g in all(enemies._) do
+        del(enemies._, g)
     end
 end
 

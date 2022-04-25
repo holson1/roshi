@@ -420,10 +420,6 @@ function _init()
     -- thanks doc_robs!
     dust={}
 
-    goombas=new_group(goomba)
-    g_koopas=new_group(g_koopa)
-    r_koopas=new_group(r_koopa)
-
     char=init_char()
     levels=roll_levels()
     map=generate_map()
@@ -458,9 +454,7 @@ function _update()
     if (state == 'e_turn') then
         char:check_space()
 
-        goombas:turn()
-        g_koopas:turn()
-        r_koopas:turn()
+        enemies:turn()
         state = 'e_anim'
     end
 
@@ -475,9 +469,7 @@ function _update()
     end
 
     char:update()
-    goombas:update()
-    g_koopas:update()
-    r_koopas:update()
+    enemies:update()
 
     for d in all(dust) do
         d:update()
@@ -498,17 +490,14 @@ function _draw()
 
     hud:draw()
 
-    -- todo: generic enemy management
-    goombas:draw()
-    g_koopas:draw()
-    r_koopas:draw()
-
+    enemies:draw()
 
     for d in all(dust) do
         d:draw()
     end
 
     animations:draw()
+
     -- debug()
 end
 -->8
@@ -596,11 +585,11 @@ function place_enemies(rooms)
     -- this will really depend on level but _FOR NOW_ let's do the easy thing and gen a default number
 
     for room in all(rooms) do
-        goombas:new({x=room[2],y=room[1]})
+        enemies:new(goomba, {x=room[2],y=room[1]})
         if (rnd() > 0.5) then
-            g_koopas:new({x=room[2],y=room[1]})
+            enemies:new(g_koopa, {x=room[2],y=room[1]})
         else
-            r_koopas:new({x=room[2],y=room[2]})
+            enemies:new(r_koopa, {x=room[2],y=room[1]})
         end
     end
 end
@@ -670,11 +659,8 @@ function draw_room(_map, point)
 end
 
 function clear_map()
-    for g in all(goombas._) do
-        del(goombas._, g)
-    end
-    for g in all(g_koopas._) do
-        del(g_koopas._, g)
+    for g in all(enemies._) do
+        del(enemies._, g)
     end
 end
 
@@ -833,6 +819,17 @@ egg_throw = function(dir)
                     animations:new(egg_break(self.x, self.y))
                     add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 2, 4, 0, 7)
                     sfx(2)
+                else
+                    -- todo: refactor to all enemies
+                    for e in all(enemies._) do
+                        if (round(e.x) == round(self.x) and round(e.y) == round(self.y)) then
+                            del(enemies._, e)
+                            self.active = false
+                            animations:new(egg_break(self.x, self.y))
+                            add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 2, 4, 0, 7)
+                            sfx(2)
+                        end
+                    end
                 end
             else
                 self.active = false
@@ -1071,29 +1068,57 @@ function check_space(_char)
     end
 end
 -->8
+--src/enemies/enemies.lua
+enemies = {
+    _ = {},
+    new=function(self, enemy, params)
+        local copy = {}
+        for k,v in pairs(enemy) do
+            copy[k]=v
+        end
+        for k,v in pairs(params) do
+            copy[k]=v
+        end
+        add(self._, copy)
+    end,
+
+    update=function(self)
+        for i,v in ipairs(self._) do
+            if (t%8 == 0) then
+                v.spri = (v.spri + 1) % 16
+                local transformed_spri = (v.spri % #v.a) + 1
+                v.s = v.a[transformed_spri]
+            end
+
+            if (v.life < 1) then
+                del(self._,self._[i])
+            end
+        end
+    end,
+
+    turn=function(self)
+        for e in all(self._) do
+            e:turn()
+        end
+    end,
+
+    draw=function(self)
+        for v in all(self._) do
+            spr(v.s,v.x*8,v.y*8,1,1,v.flip)
+        end
+    end
+}
+-->8
 --src/enemies/lamia.lua
 lamia={
     life=1,
     s=224,
-    x=4,
-    y=4,
-    state='idle',
+    x=nil,
+    y=nil,
+    w=2,
+    h=2,
     spri=0,
-
-    animations={
-        idle={224,224,234,234,234,224,224,224,226,228,230,232},
-    },
-
-    update=function(self)
-        -- generic animation code
-        if (t%3==0) then
-            self.spri = (self.spri + 1) % 16
-        end
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        
-        self.s = anim[transformed_spri]
-    end,
+    a={224,224,234,234,234,224,224,224,226,228,230,232},
 
     turn=function(self)
         local new_cell = nil
@@ -1126,10 +1151,6 @@ lamia={
         self.y = new_cell[1]
         self.x = new_cell[2]
     end,
-
-    draw=function(self)
-        spr(self.s,self.x*8,self.y*8,2,2)
-    end
 }
 -->8
 --src/enemies/evil_goomba.lua
@@ -1138,21 +1159,10 @@ evil_goomba={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
+    a={131,132},
 
-    animations={
-        walk={131,132}
-    },
-
-    update=function(self)
-        -- generic animation code
-        self.spri = (self.spri + 1) % 16
-        local anim = self.animations[self.state]
-        local transformed_spri = (self.spri % #anim) + 1
-        
-        self.s = anim[transformed_spri]
-
+    turn=function(self)
         -- evil goombas track you
         local x_diff = char.x - self.x
         local y_diff = char.y - self.y
@@ -1180,25 +1190,10 @@ g_koopa={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
     dir=-1,
     flip=true,
-
-    animations={
-        idle={144},
-        walk={144,145}
-    },
-
-    update=function(self)
-        -- generic animation code
-        if (t%8 == 0) then
-            self.spri = (self.spri + 1) % 16
-            local anim = self.animations[self.state]
-            local transformed_spri = (self.spri % #anim) + 1
-            self.s = anim[transformed_spri]
-        end
-    end,
+    a={144,145},
 
     turn=function(self)
         local new_x = self.x + self.dir 
@@ -1228,25 +1223,10 @@ r_koopa={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
     dir=-1,
     flip=true,
-
-    animations={
-        idle={146},
-        walk={146,147}
-    },
-
-    update=function(self)
-        -- generic animation code
-        if (t%8 == 0) then
-            self.spri = (self.spri + 1) % 16
-            local anim = self.animations[self.state]
-            local transformed_spri = (self.spri % #anim) + 1
-            self.s = anim[transformed_spri]
-        end
-    end,
+    a={146,147},
 
     turn=function(self)
         local new_y = self.y + self.dir 
@@ -1276,22 +1256,8 @@ goomba={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
-
-    animations={
-        idle={128},
-        walk={128,130}
-    },
-
-    update=function(self)
-        if (t%8 == 0) then
-            self.spri = (self.spri + 1) % 16
-            local anim = self.animations[self.state]
-            local transformed_spri = (self.spri % #anim) + 1
-            self.s = anim[transformed_spri]
-        end
-    end,
+    a={128,130},
     
     turn=function(self)
         -- goombas move in random directions

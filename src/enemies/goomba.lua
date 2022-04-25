@@ -3,22 +3,8 @@ goomba={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
-
-    animations={
-        idle={128},
-        walk={128,130}
-    },
-
-    update=function(self)
-        if (t%8 == 0) then
-            self.spri = (self.spri + 1) % 16
-            local anim = self.animations[self.state]
-            local transformed_spri = (self.spri % #anim) + 1
-            self.s = anim[transformed_spri]
-        end
-    end,
+    a={128,130},
     
     turn=function(self)
         -- goombas move in random directions

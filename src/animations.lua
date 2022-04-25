@@ -74,6 +74,17 @@ egg_throw = function(dir)
                     animations:new(egg_break(self.x, self.y))
                     add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 2, 4, 0, 7)
                     sfx(2)
+                else
+                    -- todo: refactor to all enemies
+                    for e in all(enemies._) do
+                        if (round(e.x) == round(self.x) and round(e.y) == round(self.y)) then
+                            del(enemies._, e)
+                            self.active = false
+                            animations:new(egg_break(self.x, self.y))
+                            add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 2, 4, 0, 7)
+                            sfx(2)
+                        end
+                    end
                 end
             else
                 self.active = false

@@ -3,25 +3,10 @@ g_koopa={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
     dir=-1,
     flip=true,
-
-    animations={
-        idle={144},
-        walk={144,145}
-    },
-
-    update=function(self)
-        -- generic animation code
-        if (t%8 == 0) then
-            self.spri = (self.spri + 1) % 16
-            local anim = self.animations[self.state]
-            local transformed_spri = (self.spri % #anim) + 1
-            self.s = anim[transformed_spri]
-        end
-    end,
+    a={144,145},
 
     turn=function(self)
         local new_x = self.x + self.dir 

@@ -3,25 +3,10 @@ r_koopa={
     s=128,
     x=nil,
     y=nil,
-    state='walk',
     spri=0,
     dir=-1,
     flip=true,
-
-    animations={
-        idle={146},
-        walk={146,147}
-    },
-
-    update=function(self)
-        -- generic animation code
-        if (t%8 == 0) then
-            self.spri = (self.spri + 1) % 16
-            local anim = self.animations[self.state]
-            local transformed_spri = (self.spri % #anim) + 1
-            self.s = anim[transformed_spri]
-        end
-    end,
+    a={146,147},
 
     turn=function(self)
         local new_y = self.y + self.dir 
