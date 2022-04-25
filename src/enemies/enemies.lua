@@ -8,6 +8,8 @@ enemies = {
         for k,v in pairs(params) do
             copy[k]=v
         end
+
+        copy.take_damage = self.take_damage
         add(self._, copy)
     end,
 
@@ -29,6 +31,12 @@ enemies = {
         for e in all(self._) do
             e:turn()
         end
+    end,
+
+    take_damage=function(self, dmg)
+        -- todo: armor calc
+        self.life = self.life - dmg
+        animations:new(damage_num(self.x, self.y, dmg))
     end,
 
     draw=function(self)

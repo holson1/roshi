@@ -1,5 +1,5 @@
 r_koopa={
-    life=1,
+    life=2,
     s=128,
     x=nil,
     y=nil,
