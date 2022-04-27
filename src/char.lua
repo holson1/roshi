@@ -16,6 +16,7 @@ function init_char()
         update_position=update_position,
         check_space=check_space,
         update=update_char,
+        take_damage=take_damage,
 
         -- all game logic should be implemented in cells, only draw functions care about px
         draw=function(self)
@@ -120,4 +121,14 @@ function check_space(_char)
         hud.coins += space.value
         map[_char.y][_char.x] = floor
     end
+end
+
+function take_damage(_char, dmg)
+    -- todo: armor calc
+    _char.health -= dmg
+    animations:new(scratch(_char.x, _char.y))
+    animations:new(damage_num(_char.x, _char.y, 1))
+    animations:new(char_hurt)
+
+    sfx(5)
 end

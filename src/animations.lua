@@ -48,6 +48,17 @@ char_throw = {
     end,
 }
 
+char_hurt = {
+    a={9,9,10,10,9,9,10,10,9,9,4,1},
+    update=function(self,anim_time)
+        if (anim_time > #self.a) then
+            self.active = false
+            return
+        end
+        char.spr = self.a[anim_time]
+    end,
+}
+
 char_move = function(ydiff, xdiff)
     return {
         a={4,4,4,4},
@@ -180,6 +191,22 @@ tongue_lick = function(dir)
         draw=function(self)
             line((char.x + 0.5) * 8, (char.y + 0.5) * 8, (self.x + 0.5) * 8, (self.y + 0.5) * 8, 8)
             char:draw()
+        end
+    }
+end
+
+scratch = function(_x, _y)
+    return {
+        s=45,
+        x=_x,
+        y=_y,
+        a={45,45,46,47,47},
+        update=function(self,anim_time)
+            if (anim_time > #self.a) then
+                self.active = false
+                return
+            end
+            self.s = self.a[anim_time]
         end
     }
 end

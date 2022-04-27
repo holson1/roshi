@@ -18,10 +18,7 @@ goomba={
             -- check to see if it hits player
             if (coord_match({new_y, new_x}, {char.y, char.x})) then
                 new_cell = {self.y, self.x}
-                sfx(5)
-                hlog('the goomba strikes!')
-                pal(11,8)
-                char.health -= 1
+                char:take_damage(1)
                 break
             end
 
