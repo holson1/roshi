@@ -22,7 +22,7 @@ r_koopa={
         end
 
         if (in_bounds(new_y, self.x) and map[new_y][self.x].flag == 0) then
-            self.y = new_y
+            animations:new(enemy_move(self, new_y - self.y, 0))
         else
             self.dir = self.dir * -1
             self.flip = self.dir > 0

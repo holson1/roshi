@@ -25,14 +25,29 @@ function _update()
     t=(t+1)%128
 
     if (state == 'p_turn') then
+        -- continue enemy animation
+        if (#animations._ > 0) then
+            animations:update(anim_time)
+            anim_time += 1
+        end
+
         controller:handle_input()
         if (char.action_taken) then
+            -- block synchronously to let long animations finish
+            while(#animations._ > 0) do
+                animations:update(anim_time)
+                anim_time += 1
+            end
+
+            animations:dequeue()
             state = 'p_anim'
             char.action_taken = false
+            anim_time = 1
         end
     end
 
     if (state == 'p_anim') then
+        -- block for player animations
         if (#animations._ > 0) then
             animations:update(anim_time)
             anim_time += 1
@@ -47,16 +62,12 @@ function _update()
         char:check_space()
 
         enemies:turn()
-        state = 'e_anim'
-    end
+        state = 'p_turn'
+        animations:dequeue()
 
-    if (state == 'e_anim') then
         if (#animations._ > 0) then
             animations:update(anim_time)
             anim_time += 1
-        else
-            state = 'p_turn'
-            anim_time = 1
         end
     end
 

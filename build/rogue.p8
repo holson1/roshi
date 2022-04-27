@@ -435,14 +435,29 @@ function _update()
     t=(t+1)%128
 
     if (state == 'p_turn') then
+        -- continue enemy animation
+        if (#animations._ > 0) then
+            animations:update(anim_time)
+            anim_time += 1
+        end
+
         controller:handle_input()
         if (char.action_taken) then
+            -- block synchronously to let long animations finish
+            while(#animations._ > 0) do
+                animations:update(anim_time)
+                anim_time += 1
+            end
+
+            animations:dequeue()
             state = 'p_anim'
             char.action_taken = false
+            anim_time = 1
         end
     end
 
     if (state == 'p_anim') then
+        -- block for player animations
         if (#animations._ > 0) then
             animations:update(anim_time)
             anim_time += 1
@@ -457,16 +472,12 @@ function _update()
         char:check_space()
 
         enemies:turn()
-        state = 'e_anim'
-    end
+        state = 'p_turn'
+        animations:dequeue()
 
-    if (state == 'e_anim') then
         if (#animations._ > 0) then
             animations:update(anim_time)
             anim_time += 1
-        else
-            state = 'p_turn'
-            anim_time = 1
         end
     end
 
@@ -747,13 +758,21 @@ end
 --src/animations.lua
 animations = {
     _ = {},
+    queue={},
     new=function(self, animation)
         local anim_copy = {}
         for k,v in pairs(animation) do
             anim_copy[k]=v
         end
         anim_copy.active = true
-        add(self._, anim_copy)
+        add(self.queue, anim_copy)
+    end,
+
+    dequeue=function(self)
+        for a in all(self.queue) do
+            add(self._, a)
+        end
+        self.queue = {}
     end,
 
     update=function(self, anim_time)
@@ -804,6 +823,27 @@ char_move = function(ydiff, xdiff)
             char.x += (self.xdiff / #self.a)
             char.y += (self.ydiff / #self.a)
         end,
+    }
+end
+
+enemy_move = function(e, ydiff, xdiff)
+    return {
+        e=e,
+        a={e.s, e.s, e.s},
+        ydiff=ydiff,
+        xdiff=xdiff,
+        update=function(self,anim_time)
+            if (anim_time > #self.a) then
+                self.active = false
+                e.x = round(e.x)
+                e.y = round(e.y)
+                return
+            end
+            e.spr = self.a[anim_time]
+
+            e.x += (self.xdiff / #self.a)
+            e.y += (self.ydiff / #self.a) 
+        end
     }
 end
 
@@ -1085,9 +1125,22 @@ end
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
-            local xdiff = _x - char.x
-            local ydiff = _y - char.y
-            animations:new(char_move(ydiff, xdiff))
+
+            -- check enemy collision
+            local space_free = true 
+
+            for e in all(enemies._) do
+                if (round(e.x) == _x and round(e.y) == _y) then
+                    space_free = false
+                    sfx(0)
+                end
+            end
+
+            if (space_free) then
+                local xdiff = _x - char.x
+                local ydiff = _y - char.y
+                animations:new(char_move(ydiff, xdiff))
+            end
         else
             _char:collide(map[_y][_x], _y, _x)
         end
@@ -1265,7 +1318,7 @@ g_koopa={
         end
 
         if (in_bounds(self.y, new_x) and map[self.y][new_x].flag == 0) then
-            self.x = new_x
+            animations:new(enemy_move(self, 0, new_x - self.x))
         else
             self.dir = self.dir * -1
             self.flip = self.dir > 0
@@ -1298,7 +1351,7 @@ r_koopa={
         end
 
         if (in_bounds(new_y, self.x) and map[new_y][self.x].flag == 0) then
-            self.y = new_y
+            animations:new(enemy_move(self, new_y - self.y, 0))
         else
             self.dir = self.dir * -1
             self.flip = self.dir > 0
@@ -1344,8 +1397,7 @@ goomba={
             end
         end
 
-        self.y = new_cell[1]
-        self.x = new_cell[2]
+        animations:new(enemy_move(self, new_cell[1] - self.y, new_cell[2] - self.x))
     end
 }
 -->8

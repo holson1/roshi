@@ -35,7 +35,6 @@ goomba={
             end
         end
 
-        self.y = new_cell[1]
-        self.x = new_cell[2]
+        animations:new(enemy_move(self, new_cell[1] - self.y, new_cell[2] - self.x))
     end
 }

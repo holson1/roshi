@@ -1,12 +1,20 @@
 animations = {
     _ = {},
+    queue={},
     new=function(self, animation)
         local anim_copy = {}
         for k,v in pairs(animation) do
             anim_copy[k]=v
         end
         anim_copy.active = true
-        add(self._, anim_copy)
+        add(self.queue, anim_copy)
+    end,
+
+    dequeue=function(self)
+        for a in all(self.queue) do
+            add(self._, a)
+        end
+        self.queue = {}
     end,
 
     update=function(self, anim_time)
@@ -57,6 +65,27 @@ char_move = function(ydiff, xdiff)
             char.x += (self.xdiff / #self.a)
             char.y += (self.ydiff / #self.a)
         end,
+    }
+end
+
+enemy_move = function(e, ydiff, xdiff)
+    return {
+        e=e,
+        a={e.s, e.s, e.s},
+        ydiff=ydiff,
+        xdiff=xdiff,
+        update=function(self,anim_time)
+            if (anim_time > #self.a) then
+                self.active = false
+                e.x = round(e.x)
+                e.y = round(e.y)
+                return
+            end
+            e.spr = self.a[anim_time]
+
+            e.x += (self.xdiff / #self.a)
+            e.y += (self.ydiff / #self.a) 
+        end
     }
 end
 

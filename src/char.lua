@@ -78,9 +78,22 @@ end
 function update_position(_char, _y, _x)
     if (in_bounds(_y, _x)) then
         if (map[_y][_x].flag ~= 1) then
-            local xdiff = _x - char.x
-            local ydiff = _y - char.y
-            animations:new(char_move(ydiff, xdiff))
+
+            -- check enemy collision
+            local space_free = true 
+
+            for e in all(enemies._) do
+                if (round(e.x) == _x and round(e.y) == _y) then
+                    space_free = false
+                    sfx(0)
+                end
+            end
+
+            if (space_free) then
+                local xdiff = _x - char.x
+                local ydiff = _y - char.y
+                animations:new(char_move(ydiff, xdiff))
+            end
         else
             _char:collide(map[_y][_x], _y, _x)
         end
