@@ -12,6 +12,7 @@ function init_hud()
         msg2='find the key',
         coins=05,
         spri=0,
+        offset=0,
 
         set_msg = function(self, m1, m2)
             self.msg1 = m1
@@ -81,7 +82,7 @@ function init_hud()
         end,
 
         draw = function(self)
-            local x = cam.x*8
+            local x = (cam.x*8)+self.offset
             local y = cam.y*8
 
             -- items
@@ -434,7 +435,15 @@ function _update()
     pal()
     t=(t+1)%128
 
+    if (state == 'game_over') then
+        return
+    end
+
     if (state == 'p_turn') then
+        if (char.health <= 0) then
+            state = 'game_over'
+        end
+
         -- continue enemy animation
         if (#animations._ > 0) then
             animations:update(anim_time)
@@ -495,23 +504,29 @@ end
 
 function _draw()
     cls()
-    camera(cam.x * 8, cam.y * 8)
 
-    draw_map(map)
+    if (state == 'game_over') then
+        camera(0,0)
+        print('game over', 16,16,8)
+    else
+        camera(cam.x * 8, cam.y * 8)
 
-    char:draw()
+        draw_map(map)
 
-    hud:draw()
+        char:draw()
 
-    enemies:draw()
+        hud:draw()
 
-    for d in all(dust) do
-        d:draw()
+        enemies:draw()
+
+        for d in all(dust) do
+            d:draw()
+        end
+
+        animations:draw()
+
+        -- debug()
     end
-
-    animations:draw()
-
-    -- debug()
 end
 -->8
 --src/map.lua
@@ -821,7 +836,7 @@ char_move = function(ydiff, xdiff)
     return {
         a={4,4,4,4},
         ydiff=ydiff,
-        xdiff=xdiff, 
+        xdiff=xdiff,
         update=function(self,anim_time)
             if (anim_time > #self.a) then
                 self.active = false
@@ -853,7 +868,7 @@ enemy_move = function(e, ydiff, xdiff)
             e.spr = self.a[anim_time]
 
             e.x += (self.xdiff / #self.a)
-            e.y += (self.ydiff / #self.a) 
+            e.y += (self.ydiff / #self.a)
         end
     }
 end
@@ -922,7 +937,7 @@ damage_num = function(_x, _y, dmg)
 
             self.x += 0.05
             self.y += self.g
-            self.g += 0.05 
+            self.g += 0.05
         end,
         draw=function(self)
             print(self.dmg, (self.x + 0.25) * 8, (self.y + 0.25) * 8, 8)
@@ -952,6 +967,19 @@ tongue_lick = function(dir)
         end
     }
 end
+
+screen_shake = {
+    update=function(self, anim_time)
+        hud.offset = 1
+
+        if (anim_time > 6) then
+            hud.offset = 0
+            self.active = false
+        elseif (anim_time > 3) then
+            hud.offset = -1
+        end
+    end
+}
 
 scratch = function(_x, _y)
     return {
@@ -1141,7 +1169,7 @@ function update_char(_char)
 
     if (_char.idle_counter > 128) then
         _char.state = 'idle'
-        _char.idle_counter = 0  
+        _char.idle_counter = 0
     end
 
     if (_char.move_counter > 3) then
@@ -1155,7 +1183,7 @@ function update_position(_char, _y, _x)
         if (map[_y][_x].flag ~= 1) then
 
             -- check enemy collision
-            local space_free = true 
+            local space_free = true
 
             for e in all(enemies._) do
                 if (round(e.x) == _x and round(e.y) == _y) then
@@ -1200,10 +1228,11 @@ end
 function take_damage(_char, dmg)
     -- todo: armor calc
     _char.health -= dmg
+
     animations:new(scratch(_char.x, _char.y))
     animations:new(damage_num(_char.x, _char.y, 1))
     animations:new(char_hurt)
-
+    animations:new(screen_shake)
     sfx(5)
 end
 -->8

@@ -8,6 +8,7 @@ function init_hud()
         msg2='find the key',
         coins=05,
         spri=0,
+        offset=0,
 
         set_msg = function(self, m1, m2)
             self.msg1 = m1
@@ -77,7 +78,7 @@ function init_hud()
         end,
 
         draw = function(self)
-            local x = cam.x*8
+            local x = (cam.x*8)+self.offset
             local y = cam.y*8
 
             -- items

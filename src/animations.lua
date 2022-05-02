@@ -63,7 +63,7 @@ char_move = function(ydiff, xdiff)
     return {
         a={4,4,4,4},
         ydiff=ydiff,
-        xdiff=xdiff, 
+        xdiff=xdiff,
         update=function(self,anim_time)
             if (anim_time > #self.a) then
                 self.active = false
@@ -95,7 +95,7 @@ enemy_move = function(e, ydiff, xdiff)
             e.spr = self.a[anim_time]
 
             e.x += (self.xdiff / #self.a)
-            e.y += (self.ydiff / #self.a) 
+            e.y += (self.ydiff / #self.a)
         end
     }
 end
@@ -164,7 +164,7 @@ damage_num = function(_x, _y, dmg)
 
             self.x += 0.05
             self.y += self.g
-            self.g += 0.05 
+            self.g += 0.05
         end,
         draw=function(self)
             print(self.dmg, (self.x + 0.25) * 8, (self.y + 0.25) * 8, 8)
@@ -194,6 +194,19 @@ tongue_lick = function(dir)
         end
     }
 end
+
+screen_shake = {
+    update=function(self, anim_time)
+        hud.offset = 1
+
+        if (anim_time > 6) then
+            hud.offset = 0
+            self.active = false
+        elseif (anim_time > 3) then
+            hud.offset = -1
+        end
+    end
+}
 
 scratch = function(_x, _y)
     return {

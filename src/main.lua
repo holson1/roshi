@@ -24,7 +24,15 @@ function _update()
     pal()
     t=(t+1)%128
 
+    if (state == 'game_over') then
+        return
+    end
+
     if (state == 'p_turn') then
+        if (char.health <= 0) then
+            state = 'game_over'
+        end
+
         -- continue enemy animation
         if (#animations._ > 0) then
             animations:update(anim_time)
@@ -85,21 +93,27 @@ end
 
 function _draw()
     cls()
-    camera(cam.x * 8, cam.y * 8)
 
-    draw_map(map)
+    if (state == 'game_over') then
+        camera(0,0)
+        print('game over', 16,16,8)
+    else
+        camera(cam.x * 8, cam.y * 8)
 
-    char:draw()
+        draw_map(map)
 
-    hud:draw()
+        char:draw()
 
-    enemies:draw()
+        hud:draw()
 
-    for d in all(dust) do
-        d:draw()
+        enemies:draw()
+
+        for d in all(dust) do
+            d:draw()
+        end
+
+        animations:draw()
+
+        -- debug()
     end
-
-    animations:draw()
-
-    -- debug()
 end

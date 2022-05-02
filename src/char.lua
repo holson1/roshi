@@ -67,7 +67,7 @@ function update_char(_char)
 
     if (_char.idle_counter > 128) then
         _char.state = 'idle'
-        _char.idle_counter = 0  
+        _char.idle_counter = 0
     end
 
     if (_char.move_counter > 3) then
@@ -81,7 +81,7 @@ function update_position(_char, _y, _x)
         if (map[_y][_x].flag ~= 1) then
 
             -- check enemy collision
-            local space_free = true 
+            local space_free = true
 
             for e in all(enemies._) do
                 if (round(e.x) == _x and round(e.y) == _y) then
@@ -126,9 +126,10 @@ end
 function take_damage(_char, dmg)
     -- todo: armor calc
     _char.health -= dmg
+
     animations:new(scratch(_char.x, _char.y))
     animations:new(damage_num(_char.x, _char.y, 1))
     animations:new(char_hurt)
-
+    animations:new(screen_shake)
     sfx(5)
 end
