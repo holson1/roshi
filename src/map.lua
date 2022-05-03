@@ -87,6 +87,7 @@ function place_enemies(rooms)
         else
             enemies:new(r_koopa, {x=room[2],y=room[1]})
         end
+        enemies:new(shy_guy, {x=room[2], y=room[1]})
     end
 end
 
@@ -138,7 +139,7 @@ end
 function draw_room(_map, point)
     local MIN_ROOM_SIZE = 3
     local MAX_ROOM_SIZE = 7
-   
+
     -- roll a random room
     local width = rndi(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
     local height = rndi(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
