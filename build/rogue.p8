@@ -620,6 +620,7 @@ function place_enemies(rooms)
             enemies:new(r_koopa, {x=room[2],y=room[1]})
         end
         enemies:new(shy_guy, {x=room[2], y=room[1]})
+        enemies:new(piranha_plant, {x=room[2], y=room[1]})
     end
 end
 
@@ -1255,6 +1256,10 @@ enemies = {
 
     update=function(self)
         for i,v in ipairs(self._) do
+            if (v.update != nil) then
+                v:update()
+            end
+
             if (t%8 == 0) then
                 v.spri = (v.spri + 1) % 16
                 local transformed_spri = (v.spri % #v.a) + 1
@@ -1281,7 +1286,7 @@ enemies = {
 
     draw=function(self)
         for v in all(self._) do
-            spr(v.s,v.x*8,v.y*8,1,1,v.flip)
+            spr(v.s,v.x*8,v.y*8,1,1,v.flip, v.vflip)
         end
     end
 }
@@ -1388,6 +1393,36 @@ lamia={
     end,
 }
 -->8
+--src/enemies/fire.lua
+fire={
+    life=1,
+    s=152,
+    x=nil,
+    y=nil,
+    dx=nil,
+    dy=nil,
+    spri=0,
+    a={152},
+    flip=false,
+    vflip=false,
+
+    update=function(self)
+        if (t % 4 == 0) then
+            add_new_dust(self.x + 0.5, self.y + 0.5, 0, 0, 6, 2, -0.02, 8)
+            if (self.flip == self.vflip) then
+                self.flip = not(self.flip)
+            else
+                self.vflip = not(self.vflip)
+            end
+        end
+    end,
+
+    turn=function(self)
+        self.x += self.dx
+        self.y += self.dy
+    end
+}
+-->8
 --src/enemies/evil_goomba.lua
 evil_goomba={
     life=1,
@@ -1445,6 +1480,36 @@ g_koopa={
         else
             self.dir = self.dir * -1
             self.flip = self.dir > 0
+        end
+    end
+}
+-->8
+--src/enemies/p_plant.lua
+piranha_plant={
+    life=1,
+    s=150,
+    x=nil,
+    y=nil,
+    spri=0,
+    a={150},
+    timer=0,
+
+    turn=function(self)
+        self.timer = max(self.timer - 1, 0)
+        local x_diff = char.x - self.x
+        local y_diff = char.y - self.y
+
+        -- todo: raycast sightline
+        if (self.timer == 0) then
+            if (x_diff == 0 and abs(y_diff) < 5) then
+                self.timer = 4
+
+                enemies:new(fire, {x=self.x, y=self.y, dx=0, dy=y_diff/abs(y_diff)}) 
+            elseif (y_diff == 0 and abs(x_diff) < 5) then
+                self.timer = 4
+
+                enemies:new(fire, {x=self.x, y=self.y, dx=x_diff/abs(x_diff), dy=0}) 
+            end
         end
     end
 }

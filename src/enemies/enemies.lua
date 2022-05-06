@@ -15,6 +15,10 @@ enemies = {
 
     update=function(self)
         for i,v in ipairs(self._) do
+            if (v.update != nil) then
+                v:update()
+            end
+
             if (t%8 == 0) then
                 v.spri = (v.spri + 1) % 16
                 local transformed_spri = (v.spri % #v.a) + 1
@@ -41,7 +45,7 @@ enemies = {
 
     draw=function(self)
         for v in all(self._) do
-            spr(v.s,v.x*8,v.y*8,1,1,v.flip)
+            spr(v.s,v.x*8,v.y*8,1,1,v.flip, v.vflip)
         end
     end
 }

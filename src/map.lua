@@ -88,6 +88,7 @@ function place_enemies(rooms)
             enemies:new(r_koopa, {x=room[2],y=room[1]})
         end
         enemies:new(shy_guy, {x=room[2], y=room[1]})
+        enemies:new(piranha_plant, {x=room[2], y=room[1]})
     end
 end
 
